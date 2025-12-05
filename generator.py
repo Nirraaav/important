@@ -35,10 +35,16 @@ def generate_index(directory):
 
         # List files
         for entry in sorted(os.listdir(directory)):
-            if entry == '.git' or entry == 'generator.py':
+            if entry == '.git' or entry == 'generator.py' or entry == '.github':
                 continue
             entry_path = os.path.join(directory, entry)
-            if os.path.isfile(entry_path) and (entry.endswith('.ipynb') or entry.endswith('.png') or entry.endswith('.jpg') or entry.endswith('.txt') or entry.endswith('.csv') or entry.endswith('.py') or entry.endswith('.pdf')):
+            if os.path.isfile(entry_path) and (entry.endswith('.ipynb') 
+                    or entry.endswith('.png') 
+                    or entry.endswith('.jpg') 
+                    or entry.endswith('.txt') 
+                    or entry.endswith('.csv') 
+                    # or entry.endswith('.py') 
+                    or entry.endswith('.pdf')):
                 f.write(f'<li><a href="{entry}">{entry}</a></li>\n')
 
         f.write('</ul>\n')
