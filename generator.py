@@ -27,7 +27,7 @@ def generate_index(directory):
 
         # List directories
         for entry in sorted(os.listdir(directory)):
-            if (entry == '.git' and directory == '.'):
+            if (entry == '.git' or entry == '.github') and directory == '.':
                 continue
             entry_path = os.path.join(directory, entry)
             if os.path.isdir(entry_path) and entry != 'index.html':
@@ -35,16 +35,18 @@ def generate_index(directory):
 
         # List files
         for entry in sorted(os.listdir(directory)):
-            if entry == '.git' or entry == 'generator.py' or entry == '.github':
+            if entry == '.git' or entry == 'generator.py':
                 continue
             entry_path = os.path.join(directory, entry)
-            if os.path.isfile(entry_path) and (entry.endswith('.ipynb') 
+            if os.path.isfile(entry_path) and (
+                    entry.endswith('.ipynb') 
                     or entry.endswith('.png') 
                     or entry.endswith('.jpg') 
                     or entry.endswith('.txt') 
                     or entry.endswith('.csv') 
                     # or entry.endswith('.py') 
-                    or entry.endswith('.pdf')):
+                    or entry.endswith('.pdf')
+                    ):
                 f.write(f'<li><a href="{entry}">{entry}</a></li>\n')
 
         f.write('</ul>\n')
@@ -58,7 +60,7 @@ def generate_index(directory):
 # Generate index.html files for all directories
 for root, dirs, files in os.walk('.'):
     # Skip the .git directory in the main directory
-    if root == '.' and '.git' in dirs:
+    if root == '.' and ('.git' or '.github' in dirs):
         dirs.remove('.git')
     if 'index.html' not in files:  # Check if index.html already exists
         generate_index(root)
