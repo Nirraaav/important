@@ -1,0 +1,98 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bussproofs}
+\usepackage{geometry}
+
+% Adjust margins for better visibility of proof trees
+\geometry{margin=1in}
+
+\title{\textbf{Rigorous Proof via Natural Deduction}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem Statement}
+We are asked to prove the following sequent:
+$$ ((p \to \bot) \to \bot) \vdash p $$
+using the specific set of inference rules provided:
+\begin{enumerate}
+    \item $\to_i$: Implication Introduction
+    \item $\to_e$: Implication Elimination
+    \item $\bot_e$: Bottom Elimination (Ex Falso)
+    \item $(\to \bot)_e$: The specific rule $\frac{(\phi \to \bot) \to \psi \quad \phi \to \zeta \quad \psi \to \zeta}{\zeta}$
+\end{enumerate}
+
+\section*{Derivation Strategy}
+We utilize the fourth rule, $(\to \bot)_e$. To make the rule result in our desired conclusion $p$, given our premise $((p \to \bot) \to \bot)$, we perform the following unification:
+\begin{itemize}
+    \item Let $\phi = p$
+    \item Let $\psi = \bot$
+    \item Let $\zeta = p$
+\end{itemize}
+
+Substituting these into Rule 4, the required premises become:
+\begin{enumerate}
+    \item $((p \to \bot) \to \bot)$ (This is our given assumption)
+    \item $p \to p$ (We must derive this)
+    \item $\bot \to p$ (We must derive this)
+\end{enumerate}
+
+\section*{The Proof Tree}
+Below is the complete proof tree constructed using the \texttt{bussproofs} environment.
+
+\vspace{1cm}
+
+\begin{center}
+\EnableBpAbbreviations
+% Start the proof tree
+% Branch 1: The Main Premise
+\AxiomC{$((p \to \bot) \to \bot)$}
+
+% Branch 2: Deriving p -> p
+\AxiomC{$[p]^1$}      % Assumption with index 1
+\RightLabel{$\to_i, 1$} % Discharging assumption 1
+\UnaryInfC{$p \to p$}
+
+% Branch 3: Deriving bot -> p
+\AxiomC{$[\bot]^2$}   % Assumption with index 2
+\RightLabel{$\bot_e$} % Rule 3
+\UnaryInfC{$p$}
+\RightLabel{$\to_i, 2$} % Discharging assumption 2
+\UnaryInfC{$\bot \to p$}
+
+% Applying Rule 4
+\RightLabel{$(\to \bot)_e$}
+\TrinaryInfC{$p$}
+\end{center}
+
+\vspace{1cm}
+
+\section*{Step-by-Step Explanation}
+
+\begin{enumerate}
+    \item \textbf{Left Branch (Premise):} We begin with the given premise $((p \to \bot) \to \bot)$.
+    
+    \item \textbf{Middle Branch (Identity):} 
+    \begin{itemize}
+        \item We assume $p$ (marked with index 1).
+        \item We apply $\to_i$ to discharge the assumption, resulting in $p \to p$.
+        \item This satisfies the requirement $\phi \to \zeta$ (where $\phi=p, \zeta=p$).
+    \end{itemize}
+    
+    \item \textbf{Right Branch (Ex Falso):} 
+    \begin{itemize}
+        \item We assume $\bot$ (marked with index 2).
+        \item By the rule $\bot_e$, from $\bot$ we can infer $p$.
+        \item We apply $\to_i$ to discharge the assumption, resulting in $\bot \to p$.
+        \item This satisfies the requirement $\psi \to \zeta$ (where $\psi=\bot, \zeta=p$).
+    \end{itemize}
+
+    \item \textbf{Conclusion:} 
+    With all three premises established, we apply rule $(\to \bot)_e$ to conclude $\zeta$, which is $p$.
+\end{enumerate}
+
+\end{document}

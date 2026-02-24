@@ -1,0 +1,142 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+
+% Page setup
+\geometry{margin=1in}
+
+% Theorem environments
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+
+\title{\textbf{Rigorous Proofs for the Parity Function CNF Properties}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem Statement}
+
+Consider the parity function $\text{PARITY} : \{0,1\}^n \to \{0,1\}$, where $\text{PARITY}(x_1, \dots, x_n) = 1$ if and only if an odd number of inputs are 1. We consider a Conjunctive Normal Form (CNF) representation of this function. We assume:
+\begin{enumerate}
+    \item No clause contains any variable more than once (e.g., no $p \land \neg p$ or $p \lor p$).
+    \item All clauses are distinct.
+\end{enumerate}
+
+\noindent \textbf{(a)} Prove that any CNF representation of PARITY must have $n$ literals (from distinct variables) in every clause.
+
+\noindent \textbf{(b)} Prove that any CNF representation of PARITY must have $\ge 2^{n-1}$ clauses.
+
+\newpage
+
+\section*{Part (a): Clause Size}
+
+\begin{theorem}
+Let $\phi$ be a CNF formula such that $\phi(x) \equiv \text{PARITY}(x)$ for all $x \in \{0,1\}^n$. Every clause $C$ in $\phi$ must contain exactly $n$ literals.
+\end{theorem}
+
+\begin{proof}
+Let $\phi = C_1 \land C_2 \land \dots \land C_m$. Since $\phi$ represents the PARITY function, $\phi(x) = 1$ when the weight of $x$ (number of 1s) is odd, and $\phi(x) = 0$ when the weight of $x$ is even.
+
+For a CNF formula to evaluate to 0 (False) on a specific input $x$, at least one of its clauses must evaluate to 0. Conversely, if $\phi(x) = 0$, there exists at least one clause $C \in \phi$ such that $C(x) = 0$.
+
+We proceed by contradiction. Assume there exists a clause $C \in \phi$ that has fewer than $n$ literals.
+
+\begin{enumerate}
+    \item \textbf{Existence of a Missing Variable:}
+    Since the number of variables is $n$ and $|C| < n$, there exists some variable $x_i$ that does not appear in clause $C$ (neither as a positive literal $x_i$ nor as a negative literal $\neg x_i$).
+
+    \item \textbf{Falsifying Assignment:}
+    For the clause $C$ to contribute to the function, it cannot be a tautology (always True). In standard CNF form over distinct variables, a clause is never a tautology unless it is empty (False) or contains complementary literals (excluded by problem statement).
+    A clause $C$ evaluates to 0 for exactly those assignments where every literal in $C$ evaluates to 0.
+    Since $C$ is part of $\phi$, there must be some input assignment $\alpha \in \{0,1\}^n$ such that $C(\alpha) = 0$. (If $C$ were never 0, it would be always 1, and could be removed without changing the function).
+    
+    Since $C(\alpha) = 0$, and $\phi$ is a conjunction containing $C$, it follows that $\phi(\alpha) = 0$.
+    By the definition of $\phi$, this implies $\text{PARITY}(\alpha) = 0$. Thus, $\alpha$ has an \textbf{even} number of 1s.
+
+    \item \textbf{Flipping the Missing Variable:}
+    Consider a new assignment $\alpha'$ which is identical to $\alpha$ except for the bit at index $i$:
+    \[
+    \alpha'_j = \begin{cases} 
+    \alpha_j & \text{if } j \neq i \\
+    1 - \alpha_j & \text{if } j = i 
+    \end{cases}
+    \]
+    The weight of $\alpha'$ differs from the weight of $\alpha$ by exactly 1.
+    Since $\alpha$ has even parity, $\alpha'$ must have \textbf{odd} parity.
+    Therefore, $\text{PARITY}(\alpha') = 1$.
+    Consequently, for $\phi$ to be correct, we must have $\phi(\alpha') = 1$.
+
+    \item \textbf{Contradiction:}
+    Recall that clause $C$ does not contain variable $x_i$. The truth value of $C$ depends only on the variables present in $C$.
+    Since $\alpha$ and $\alpha'$ agree on all variables except $x_i$, and $x_i \notin C$, we must have:
+    \[ C(\alpha') = C(\alpha) \]
+    We established earlier that $C(\alpha) = 0$. Therefore, $C(\alpha') = 0$.
+    
+    Since $\phi$ is a conjunction of clauses including $C$, if $C(\alpha') = 0$, then the entire conjunction $\phi(\alpha')$ must be 0.
+    
+    We have derived:
+    \begin{itemize}
+        \item $\phi(\alpha') = 1$ (from the definition of PARITY and the bit flip).
+        \item $\phi(\alpha') = 0$ (from the independence of clause $C$ from variable $x_i$).
+    \end{itemize}
+    This is a contradiction.
+\end{enumerate}
+
+Thus, the assumption that $|C| < n$ must be false. Every clause must contain all $n$ variables.
+\end{proof}
+
+\section*{Part (b): Number of Clauses}
+
+\begin{theorem}
+Any CNF representation $\phi$ of the PARITY function on $n$ variables must contain at least $2^{n-1}$ clauses.
+\end{theorem}
+
+\begin{proof}
+Let $\phi = \bigwedge_{j=1}^m C_j$. We aim to show $m \ge 2^{n-1}$.
+
+\begin{enumerate}
+    \item \textbf{The Set of Falsifying Inputs:}
+    The function $\text{PARITY}(x)$ evaluates to 0 if and only if $x$ has an even number of 1s. Let $Z$ be the set of inputs for which the function is False:
+    \[ Z = \{ x \in \{0,1\}^n \mid \text{PARITY}(x) = 0 \} \]
+    The number of subsets of $\{1, \dots, n\}$ with even cardinality is exactly $2^{n-1}$. Thus, $|Z| = 2^{n-1}$.
+
+    \item \textbf{CNF Semantics:}
+    A CNF formula $\phi(x)$ evaluates to 0 if and only if there exists at least one clause $C_j$ such that $C_j(x) = 0$.
+    Therefore, the set of inputs $Z$ where $\phi$ is False is exactly the union of the sets of inputs falsified by each clause.
+    Let $S_j = \{ x \in \{0,1\}^n \mid C_j(x) = 0 \}$.
+    We must have:
+    \[ Z = \bigcup_{j=1}^m S_j \]
+
+    \item \textbf{Size of $S_j$:}
+    From Part (a), we proved that every clause $C_j$ in a CNF for PARITY must contain exactly $n$ literals.
+    A clause with $n$ distinct literals is falsified by exactly one unique input assignment.
+    
+    For example, if $n=3$ and $C = (x_1 \lor \neg x_2 \lor x_3)$, $C$ is False only when $x_1=0, x_2=1, x_3=0$. Any other assignment satisfies at least one literal.
+    
+    Therefore, for every clause $C_j$, we have $|S_j| = 1$.
+
+    \item \textbf{Counting Argument:}
+    Using the union bound (or simply the sum of cardinalities since sets are disjoint or not), the size of the union cannot exceed the sum of the sizes of the components:
+    \[ |Z| = \left| \bigcup_{j=1}^m S_j \right| \le \sum_{j=1}^m |S_j| \]
+    Substituting the known values:
+    \begin{itemize}
+        \item $|Z| = 2^{n-1}$
+        \item $|S_j| = 1$ for all $j$
+    \end{itemize}
+    \[ 2^{n-1} \le \sum_{j=1}^m 1 \]
+    \[ 2^{n-1} \le m \]
+\end{enumerate}
+
+Therefore, the number of clauses $m$ must be at least $2^{n-1}$.
+\end{proof}
+
+\end{document}  

@@ -1,0 +1,68 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+
+\geometry{margin=1in}
+
+\title{\textbf{CNF Encoding of the $4 \times 4$ Sudoku Instance}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Variable Definition}
+Let $x_{i,j,k}$ be a Boolean variable representing that the cell at row $i$, column $j$ contains value $k$.
+\begin{itemize}
+    \item $i, j, k \in \{1, 2, 3, 4\}$
+    \item Total variables: $4^3 = 64$.
+\end{itemize}
+
+\section{The Clause Sets}
+The CNF formula is a conjunction of the following sets of clauses.
+
+\subsection{1. Cell Definedness ($C_{\text{def}}$)}
+Every cell must contain \textbf{at least one} value.
+$$ \bigwedge_{i=1}^4 \bigwedge_{j=1}^4 \left( x_{i,j,1} \lor x_{i,j,2} \lor x_{i,j,3} \lor x_{i,j,4} \right) $$
+\textit{(16 clauses)}
+
+\subsection{2. Cell Uniqueness ($C_{\text{unique}}$)}
+Every cell must contain \textbf{at most one} value. For every cell $(i,j)$ and every distinct pair of values $u, v$, if the cell contains $u$, it cannot contain $v$.
+$$ \bigwedge_{i=1}^4 \bigwedge_{j=1}^4 \bigwedge_{1 \le u < v \le 4} \left( \neg x_{i,j,u} \lor \neg x_{i,j,v} \right) $$
+\textit{(16 cells $\times$ 6 pairs = 96 clauses)}
+
+\subsection{3. Row Constraints ($C_{\text{row}}$)}
+Every row $i$ must contain every value $k$ (at least once).
+$$ \bigwedge_{i=1}^4 \bigwedge_{k=1}^4 \left( x_{i,1,k} \lor x_{i,2,k} \lor x_{i,3,k} \lor x_{i,4,k} \right) $$
+\textit{(16 clauses)}
+
+\subsection{4. Column Constraints ($C_{\text{col}}$)}
+Every column $j$ must contain every value $k$ (at least once).
+$$ \bigwedge_{j=1}^4 \bigwedge_{k=1}^4 \left( x_{1,j,k} \lor x_{2,j,k} \lor x_{3,j,k} \lor x_{4,j,k} \right) $$
+\textit{(16 clauses)}
+
+\subsection{5. Subgrid (Block) Constraints ($C_{\text{block}}$)}
+Every $2 \times 2$ block must contain every value $k$. The blocks $B_{r,c}$ (where $r,c \in \{0,1\}$) cover cells $(2r+1 \dots 2r+2, 2c+1 \dots 2c+2)$.
+$$ \bigwedge_{r=0}^1 \bigwedge_{c=0}^1 \bigwedge_{k=1}^4 \left( \bigvee_{m=1}^2 \bigvee_{n=1}^2 x_{2r+m, 2c+n, k} \right) $$
+\textit{(16 clauses)}
+
+\section{Instance Specific Unit Clauses ($C_{\text{givens}}$)}
+These clauses enforce the initial configuration given in the problem image. They are single-literal clauses (Unit Clauses).
+
+\begin{align*}
+    C_{\text{givens}} = & \quad (x_{1,1,1}) \land (x_{1,3,3}) \\
+    & \land (x_{2,4,2}) \\
+    & \land (x_{3,4,3}) \\
+    & \land (x_{4,1,2}) \land (x_{4,4,1})
+\end{align*}
+\textit{(6 clauses)}
+
+\section{Total Complexity}
+The complete CNF encoding for this specific instance consists of:
+$$ 16 + 96 + 16 + 16 + 16 + 6 = 166 \text{ Clauses} $$
+Any Boolean Satisfiability (SAT) solver that finds a variable assignment satisfying all 166 clauses has found the unique solution to the puzzle.
+
+\end{document}  

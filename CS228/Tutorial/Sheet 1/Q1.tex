@@ -1,0 +1,118 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{enumitem}
+
+% Page layout settings
+\geometry{
+    margin=1in
+}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+
+\title{\textbf{Propositional Logic Encoding for Exam Scheduling}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Definition}
+
+We are tasked with scheduling a set of exams $E$ into a set of time slots $S$.
+
+\begin{itemize}
+    \item \textbf{Exams ($E$):} $\{M, P, C, CS, H\}$ corresponding to Mathematics, Physics, Chemistry, Computer Science, and History.
+    \item \textbf{Slots ($S$):} $\{1, 2, 3\}$.
+\end{itemize}
+
+\subsection{Variables}
+We define the propositional variables $X_i$ for each exam $X \in E$ and slot $i \in S$:
+$$ X_i = \text{Exam } X \text{ is scheduled in slot } i $$
+The total number of variables is $|E| \times |S| = 5 \times 3 = 15$.
+
+\section{Constraint Derivation}
+
+We seek a propositional formula $\Psi$ such that a satisfying assignment to $\Psi$ corresponds exactly to a valid schedule satisfying all constraints.
+
+\subsection{Fundamental Scheduling Constraints}
+Before encoding the specific rules of the problem, we must ensure the variables represent a well-formed function $f: E \to S$.
+
+\subsubsection*{1. Completeness (At least one slot)}
+Every exam must be scheduled in at least one slot.
+$$ \phi_{\text{complete}} = \bigwedge_{X \in E} (X_1 \lor X_2 \lor X_3) $$
+
+\subsubsection*{2. Uniqueness (At most one slot)}
+No exam can be scheduled in more than one slot.
+$$ \phi_{\text{unique}} = \bigwedge_{X \in E} \big( \neg(X_1 \land X_2) \land \neg(X_1 \land X_3) \land \neg(X_2 \land X_3) \big) $$
+
+The base validity formula is:
+$$ \Phi_{\text{base}} = \phi_{\text{complete}} \land \phi_{\text{unique}} $$
+
+\subsection{Problem-Specific Constraints}
+
+\subsubsection*{Constraint 1: M and P Disjointness}
+\textit{``M and P cannot be in the same slot.''} \\
+For every slot $i$, it is forbidden that both $M_i$ and $P_i$ are true.
+$$ \Phi_1 = \bigwedge_{i=1}^{3} \neg(M_i \land P_i) $$
+Using logical equivalence $\neg(A \land B) \equiv (\neg A \lor \neg B)$, this can be written as:
+$$ \Phi_1 = (\neg M_1 \lor \neg P_1) \land (\neg M_2 \lor \neg P_2) \land (\neg M_3 \lor \neg P_3) $$
+
+\subsubsection*{Constraint 2: C and CS Disjointness}
+\textit{``C must be in a different slot from CS.''} \\
+Similarly, $C$ and $CS$ cannot share a slot.
+$$ \Phi_2 = \bigwedge_{i=1}^{3} \neg(C_i \land CS_i) $$
+
+\subsubsection*{Constraint 3: Slot 1 Requirement}
+\textit{``At least one of M, P, C must be in S1.''} \\
+This is a simple disjunction of assignments to slot 1.
+$$ \Phi_3 = M_1 \lor P_1 \lor C_1 $$
+
+\subsubsection*{Constraint 4: Conditional Constraint}
+\textit{``If H is in S1, then M cannot be in S3.''} \\
+This is a material implication $H_1 \implies \neg M_3$.
+$$ \Phi_4 = H_1 \to \neg M_3 $$
+Converting to Clause Normal Form (CNF):
+$$ \Phi_4 \equiv \neg H_1 \lor \neg M_3 $$
+
+\subsubsection*{Constraint 5: Non-Consecutive Heavy Courses}
+\textit{``CS and M cannot be in consecutive slots.''} \\
+Two slots $i$ and $j$ are consecutive if $|i - j| = 1$. The consecutive pairs are $(1,2)$ and $(2,3)$. We must forbid the configuration where one exam is in slot $k$ and the other is in slot $k+1$.
+
+The forbidden configurations are:
+\begin{itemize}
+    \item $CS$ in 1, $M$ in 2: $(CS_1 \land M_2)$
+    \item $M$ in 1, $CS$ in 2: $(M_1 \land CS_2)$
+    \item $CS$ in 2, $M$ in 3: $(CS_2 \land M_3)$
+    \item $M$ in 2, $CS$ in 3: $(M_2 \land CS_3)$
+\end{itemize}
+
+The formula negates all these possibilities:
+$$ \Phi_5 = \neg(CS_1 \land M_2) \land \neg(M_1 \land CS_2) \land \neg(CS_2 \land M_3) \land \neg(M_2 \land CS_3) $$
+
+\section{Final Formula}
+
+The complete encoding $\Psi$ is the conjunction of all derived formulas:
+
+$$ \Psi = \Phi_{\text{base}} \land \Phi_1 \land \Phi_2 \land \Phi_3 \land \Phi_4 \land \Phi_5 $$
+
+Writing this out fully:
+
+\begin{align*}
+    \Psi = & \left[ \bigwedge_{X \in E} \left( (X_1 \lor X_2 \lor X_3) \land \bigwedge_{1 \le j < k \le 3} \neg(X_j \land X_k) \right) \right] \quad \text{(Valid Schedule)} \\
+    \land & \left[ \bigwedge_{i=1}^{3} \neg(M_i \land P_i) \right] \quad \text{(M, P Separate)} \\
+    \land & \left[ \bigwedge_{i=1}^{3} \neg(C_i \land CS_i) \right] \quad \text{(C, CS Separate)} \\
+    \land & \left[ M_1 \lor P_1 \lor C_1 \right] \quad \text{(S1 Requirement)} \\
+    \land & \left[ \neg H_1 \lor \neg M_3 \right] \quad \text{(H and M Conditional)} \\
+    \land & \left[ \neg(CS_1 \land M_2) \land \neg(M_1 \land CS_2) \right] \quad \text{(No Consecutive 1-2)} \\
+    \land & \left[ \neg(CS_2 \land M_3) \land \neg(M_2 \land CS_3) \right] \quad \text{(No Consecutive 2-3)}
+\end{align*}
+
+Every satisfying assignment of $\Psi$ maps uniquely to a valid exam schedule.
+
+\end{document}

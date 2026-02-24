@@ -1,0 +1,87 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+
+% Page setup
+\geometry{margin=1in}
+
+% Theorem environments
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\title{\textbf{Rigorous Proof of Logical Validity}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Statement}
+
+Let $p_1, p_2, p_3, q$ be propositional variables. We wish to prove that the following logical implication is a tautology:
+
+\begin{equation}
+\label{eq:main}
+\left[ (p_1 \to q) \land (p_2 \to q) \land (p_3 \to q) \right] \longrightarrow \left[ (p_1 \lor p_2 \lor p_3) \to q \right]
+\end{equation}
+
+\section{Definitions and Axioms}
+
+The proof relies on the following standard logical equivalences (Laws of Boolean Algebra). Let $A, B, C$ be arbitrary propositions.
+
+\begin{enumerate}
+    \item \textbf{Material Implication:} $A \to B \equiv \neg A \lor B$
+    \item \textbf{Distributive Law:} $(A \lor C) \land (B \lor C) \equiv (A \land B) \lor C$ \\
+    \textit{(Generalized: $\bigwedge_{i} (A_i \lor C) \equiv (\bigwedge_{i} A_i) \lor C$)}
+    \item \textbf{De Morgan's Law:} $\neg A \land \neg B \equiv \neg (A \lor B)$ \\
+    \textit{(Generalized: $\bigwedge_{i} \neg A_i \equiv \neg (\bigvee_{i} A_i)$)}
+    \item \textbf{Reflexivity of Implication:} $A \to A$ is a tautology ($\top$).
+\end{enumerate}
+
+\section{Formal Proof}
+
+\begin{theorem}
+The proposition $\Phi$ defined in Eq. (\ref{eq:main}) is a tautology.
+\end{theorem}
+
+\begin{proof}
+Let logical equivalence be denoted by $\equiv$. We define the antecedent (Left Hand Side) of the main implication as $L$. We will transform $L$ algebraically to show it is equivalent to the consequent (Right Hand Side).
+
+Let $L$ be:
+$$ L = (p_1 \to q) \land (p_2 \to q) \land (p_3 \to q) $$
+
+\textbf{Step 1: Eliminate Implications} \\
+Using the rule of \textit{Material Implication} ($A \to B \equiv \neg A \lor B$), we rewrite each term:
+$$ L \equiv (\neg p_1 \lor q) \land (\neg p_2 \lor q) \land (\neg p_3 \lor q) $$
+
+\textbf{Step 2: Apply Distributivity} \\
+We observe that the variable $q$ is common to all disjunctions. By the \textit{Distributive Law} (specifically, distribution of $\lor$ over $\land$), we can factor out $q$:
+$$ L \equiv (\neg p_1 \land \neg p_2 \land \neg p_3) \lor q $$
+
+\textbf{Step 3: Apply De Morgan's Law} \\
+We apply \textit{De Morgan's Law} to the conjunction of negations $(\neg p_1 \land \neg p_2 \land \neg p_3)$. This allows us to pull the negation outside:
+$$ (\neg p_1 \land \neg p_2 \land \neg p_3) \equiv \neg (p_1 \lor p_2 \lor p_3) $$
+Substituting this back into our expression for $L$:
+$$ L \equiv \neg (p_1 \lor p_2 \lor p_3) \lor q $$
+
+\textbf{Step 4: Reintroduce Implication} \\
+Let $P = (p_1 \lor p_2 \lor p_3)$. Our expression is now $\neg P \lor q$.
+Using the rule of \textit{Material Implication} in reverse ($\neg A \lor B \equiv A \to B$):
+$$ \neg (p_1 \lor p_2 \lor p_3) \lor q \equiv (p_1 \lor p_2 \lor p_3) \to q $$
+
+\textbf{Conclusion} \\
+We have demonstrated through a chain of equivalences that:
+$$ \underbrace{((p_1 \to q) \land (p_2 \to q) \land (p_3 \to q))}_{\text{Antecedent}} \equiv \underbrace{((p_1 \lor p_2 \lor p_3) \to q)}_{\text{Consequent}} $$
+
+The original formula is of the form $L \to L$. By the law of identity (Reflexivity), $L \to L$ is always True.
+
+Therefore, the formula is a tautology.
+\end{proof}
+
+\end{document}

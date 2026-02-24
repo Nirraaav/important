@@ -1,0 +1,61 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+
+\geometry{margin=1in}
+
+\title{\textbf{Propositional Logic Encoding of $4 \times 4$ Sudoku}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Variables}
+Let $x_{i,j,k}$ be a Boolean variable where $i, j \in \{1, 2, 3, 4\}$ represent the row and column indices, and $k \in \{1, 2, 3, 4\}$ represents the value.
+$$ x_{i,j,k} = \begin{cases} \text{True} & \text{if cell }(i,j) \text{ contains value } k \\ \text{False} & \text{otherwise} \end{cases} $$
+There are $4 \times 4 \times 4 = 64$ total variables.
+
+\section{The General Formula}
+The Sudoku puzzle is solvable if and only if the formula $\Phi$ is satisfiable.
+$$ \Phi = \Phi_{\text{cell}} \land \Phi_{\text{row}} \land \Phi_{\text{col}} \land \Phi_{\text{block}} \land \Phi_{\text{init}} $$
+
+\subsection{1. Cell Constraints ($\Phi_{\text{cell}}$)}
+Every cell $(i, j)$ must contain exactly one number. This is the conjunction of "at least one" and "at most one".
+
+$$ \Phi_{\text{cell}} = \bigwedge_{i=1}^4 \bigwedge_{j=1}^4 \left[ \left( \bigvee_{k=1}^4 x_{i,j,k} \right) \land \left( \bigwedge_{1 \le k < k' \le 4} \neg (x_{i,j,k} \land x_{i,j,k'}) \right) \right] $$
+
+\subsection{2. Row Constraints ($\Phi_{\text{row}}$)}
+Every number $k$ must appear at least once in every row $i$.
+$$ \Phi_{\text{row}} = \bigwedge_{i=1}^4 \bigwedge_{k=1}^4 \left( \bigvee_{j=1}^4 x_{i,j,k} \right) $$
+
+\subsection{3. Column Constraints ($\Phi_{\text{col}}$)}
+Every number $k$ must appear at least once in every column $j$.
+$$ \Phi_{\text{col}} = \bigwedge_{j=1}^4 \bigwedge_{k=1}^4 \left( \bigvee_{i=1}^4 x_{i,j,k} \right) $$
+
+\subsection{4. Block Constraints ($\Phi_{\text{block}}$)}
+Every number $k$ must appear at least once in every $2 \times 2$ subgrid. We define the four subgrids $B_{r,c}$ for $r,c \in \{0,1\}$ where the cells are defined by row indices $\{2r+1, 2r+2\}$ and column indices $\{2c+1, 2c+2\}$.
+
+$$ \Phi_{\text{block}} = \bigwedge_{r=0}^1 \bigwedge_{c=0}^1 \bigwedge_{k=1}^4 \left( \bigvee_{m=1}^2 \bigvee_{n=1}^2 x_{2r+m, 2c+n, k} \right) $$
+
+\section{The Instance Formula ($\Phi_{\text{init}}$)}
+This component enforces the clues provided in the specific problem image. It is a conjunction of Unit Clauses (literals that must be true).
+
+Based on the image provided:
+\begin{align*}
+    \text{Row 1:} & \quad x_{1,1,1} \land x_{1,3,3} \\
+    \text{Row 2:} & \quad x_{2,4,2} \\
+    \text{Row 3:} & \quad x_{3,4,3} \\
+    \text{Row 4:} & \quad x_{4,1,2} \land x_{4,4,1}
+\end{align*}
+
+Thus, the specific formula for this instance is:
+$$ \Phi_{\text{init}} = x_{1,1,1} \land x_{1,3,3} \land x_{2,4,2} \land x_{3,4,3} \land x_{4,1,2} \land x_{4,4,1} $$
+
+\section{Summary}
+The complete propositional formula for this problem is the conjunction of all constraints defined above. A satisfying truth assignment to the variables $x_{i,j,k}$ corresponds to the unique valid solution of the puzzle.
+
+\end{document}

@@ -1,0 +1,137 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+
+% Page setup
+\geometry{margin=1in}
+
+\title{\textbf{Rigorous Derivation of DNF and Tseitin Encoding}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem Statement}
+
+Consider the formula:
+\[
+    \varphi \equiv x_1 \lor \neg(x_2 \land \neg(x_3 \leftrightarrow (x_1 \to \neg x_2)))
+\]
+
+\textbf{(a)} Give a DNF formula that is semantically equivalent to $\varphi$, using techniques studied in class.
+
+\textbf{(b)} Use Tseitin encoding to write an equisatisfiable formula $\psi$ in conjunctive normal form. Would $\neg \psi$ be also equisatisfiable with $\neg \varphi$? Give justification for your answer.
+
+\section*{Part (a): Disjunctive Normal Form (DNF)}
+
+\textbf{Solution:}
+
+We derive the Disjunctive Normal Form (DNF) by systematically applying logical equivalences.
+
+\subsection*{Step 1: Eliminate Implications and Equivalences}
+First, we address the innermost implication $x_1 \to \neg x_2$. Using the equivalence $A \to B \equiv \neg A \lor B$:
+\[ (x_1 \to \neg x_2) \equiv (\neg x_1 \lor \neg x_2) \]
+Substituting this back into $\varphi$:
+\[ \varphi \equiv x_1 \lor \neg(x_2 \land \neg(x_3 \leftrightarrow (\neg x_1 \lor \neg x_2))) \]
+
+Next, we address the equivalence $A \leftrightarrow B \equiv (A \land B) \lor (\neg A \land \neg B)$. Let $Q = (\neg x_1 \lor \neg x_2)$.
+\[ x_3 \leftrightarrow Q \equiv (x_3 \land Q) \lor (\neg x_3 \land \neg Q) \]
+Using De Morgan's Law, $\neg Q = \neg(\neg x_1 \lor \neg x_2) = (x_1 \land x_2)$. Thus the equivalence $E$ becomes:
+\[ E \equiv (x_3 \land (\neg x_1 \lor \neg x_2)) \lor (\neg x_3 \land (x_1 \land x_2)) \]
+
+\subsection*{Step 2: Push Negations Inward}
+The formula is now $\varphi \equiv x_1 \lor \neg(x_2 \land \neg E)$. By De Morgan's Law:
+\[ \varphi \equiv x_1 \lor (\neg x_2 \lor \neg \neg E) \]
+By Double Negation Elimination:
+\[ \varphi \equiv x_1 \lor \neg x_2 \lor E \]
+Substituting $E$ back in:
+\[ \varphi \equiv x_1 \lor \neg x_2 \lor \left[ (x_3 \land (\neg x_1 \lor \neg x_2)) \lor (\neg x_3 \land x_1 \land x_2) \right] \]
+
+\subsection*{Step 3: Distribute to obtain DNF}
+We apply the distributive law to $(x_3 \land (\neg x_1 \lor \neg x_2))$:
+\[ (x_3 \land \neg x_1) \lor (x_3 \land \neg x_2) \]
+Substituting this back:
+\[ \varphi \equiv x_1 \lor \neg x_2 \lor (x_3 \land \neg x_1) \lor (x_3 \land \neg x_2) \lor (\neg x_3 \land x_1 \land x_2) \]
+
+\subsection*{Step 4: Simplification}
+Using the Absorption Law $A \lor (A \land B) \equiv A$:
+
+\noindent \textbf{Term 1:} $x_1$ absorbs $(\neg x_3 \land x_1 \land x_2)$.
+
+\noindent \textbf{Term 2:} $\neg x_2$ absorbs $(x_3 \land \neg x_2)$.
+
+\noindent Reduced DNF:
+\[ \varphi \equiv x_1 \lor \neg x_2 \lor (x_3 \land \neg x_1) \]
+Using $A \lor (\neg A \land B) \equiv A \lor B$:
+\[ x_1 \lor (\neg x_1 \land x_3) \equiv x_1 \lor x_3 \]
+Final DNF:
+\[ \varphi_{\text{DNF}} \equiv x_1 \lor \neg x_2 \lor x_3 \]
+
+\newpage
+
+\section*{Part (b): Tseitin Encoding}
+
+\textbf{Solution:}
+
+\subsection*{1. Tseitin Construction}
+We introduce fresh variables $y_i$ for sub-expressions.
+\begin{align*}
+    y_1 &\leftrightarrow \neg x_2 \\
+    y_2 &\leftrightarrow (x_1 \to y_1) \\
+    y_3 &\leftrightarrow (x_3 \leftrightarrow y_2) \\
+    y_4 &\leftrightarrow \neg y_3 \\
+    y_5 &\leftrightarrow (x_2 \land y_4) \\
+    y_6 &\leftrightarrow \neg y_5 \\
+    y_7 &\leftrightarrow (x_1 \lor y_6)
+\end{align*}
+
+\subsection*{2. CNF Clauses for Definitions}
+
+\noindent \textbf{1. Definition of $y_1$:} $(y_1 \leftrightarrow \neg x_2)$
+\[ (\neg y_1 \lor \neg x_2) \land (x_2 \lor y_1) \]
+
+\noindent \textbf{2. Definition of $y_2$:} $(y_2 \leftrightarrow (\neg x_1 \lor y_1))$
+\[ (\neg y_2 \lor \neg x_1 \lor y_1) \land (x_1 \lor y_2) \land (\neg y_1 \lor y_2) \]
+
+\noindent \textbf{3. Definition of $y_3$:} $(y_3 \leftrightarrow (x_3 \leftrightarrow y_2))$
+\[
+\begin{aligned}
+(\neg y_3 \lor \neg x_3 \lor y_2) &\land (\neg y_3 \lor x_3 \lor \neg y_2) \\
+&\land (y_3 \lor x_3 \lor y_2) \land (y_3 \lor \neg x_3 \lor \neg y_2)
+\end{aligned}
+\]
+
+\noindent \textbf{4. Definition of $y_4$:} $(y_4 \leftrightarrow \neg y_3)$
+\[ (\neg y_4 \lor \neg y_3) \land (y_3 \lor y_4) \]
+
+\noindent \textbf{5. Definition of $y_5$:} $(y_5 \leftrightarrow (x_2 \land y_4))$
+\[ (\neg y_5 \lor x_2) \land (\neg y_5 \lor y_4) \land (\neg x_2 \lor \neg y_4 \lor y_5) \]
+
+\noindent \textbf{6. Definition of $y_6$:} $(y_6 \leftrightarrow \neg y_5)$
+\[ (\neg y_6 \lor \neg y_5) \land (y_5 \lor y_6) \]
+
+\noindent \textbf{7. Definition of $y_7$:} $(y_7 \leftrightarrow (x_1 \lor y_6))$
+\[ (\neg y_7 \lor x_1 \lor y_6) \land (\neg x_1 \lor y_7) \land (\neg y_6 \lor y_7) \]
+
+\noindent \textbf{8. Root Unit Clause:}
+\[ (y_7) \]
+
+\subsection*{3. Equisatisfiability of Negations}
+\textbf{Question:} Is $\neg \psi$ equisatisfiable with $\neg \varphi$? \\
+\textbf{Answer:} No.
+
+\textbf{Justification:}
+Two formulas $A$ and $B$ are equisatisfiable if ($A$ is satisfiable $\iff$ $B$ is satisfiable).
+
+\noindent \textbf{Case 1:} $\neg \varphi$ is satisfiable only if $\varphi$ is \textbf{not} a tautology.
+
+\noindent \textbf{Case 2:} $\neg \psi$ is equivalent to $\neg y_{\text{root}} \lor \neg (\text{Definitions})$. Since it is always possible to violate the definitions (by choosing variable assignments that make the gates False), $\neg \psi$ is \textbf{always satisfiable}.
+
+Because $\neg \psi$ is always satisfiable regardless of the logical validity of $\varphi$, they are not equisatisfiable.
+
+\end{document}
