@@ -1,0 +1,390 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm, enumitem}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+
+% Theorem Styles
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}
+\newtheorem*{solution}{Solution}
+
+% Macros
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\Pset}{\mathcal{P}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{\textbf{MA 408: Measure Theory -- Practice Set 1 Solutions}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% PROBLEM 1
+\begin{problem}
+Let $X$ be any nonempty set. Let $\C := \{E \subseteq X \mid E \text{ is finite or } E^c \text{ is finite}\}$.
+\begin{enumerate}[label=(\arabic*)]
+    \item Prove that $\C \subseteq \Pset(X)$ is an algebra.
+    \item Show that if $X$ is a finite set then $\C = \Pset(X)$.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{Part (1): $\C$ is an algebra.}
+To show $\C$ is an algebra, we must verify three conditions:
+\begin{itemize}
+    \item \textbf{(i) $X \in \C$:}
+    Consider the complement $X^c = \emptyset$. Since the empty set has cardinality 0, it is finite. By definition, if the complement is finite, the set is in $\C$. Thus, $X \in \C$.
+
+    \item \textbf{(ii) Closure under complements:}
+    Let $E \in \C$.
+    \begin{itemize}
+        \item Case 1: $E$ is finite. Then $(E^c)^c = E$ is finite, which implies $E^c \in \C$.
+        \item Case 2: $E^c$ is finite. Then $E^c$ is a finite set, so $E^c \in \C$ directly.
+    \end{itemize}
+    In both cases, $E^c \in \C$.
+
+    \item \textbf{(iii) Closure under finite unions:}
+    Let $A, B \in \C$. We examine the possible cases:
+    \begin{itemize}
+        \item Case 1: Both $A$ and $B$ are finite. The union of two finite sets is finite. Thus $A \cup B \in \C$.
+        \item Case 2: At least one is co-finite (complement is finite). Without loss of generality, assume $A^c$ is finite.
+        Using De Morgan's laws: $(A \cup B)^c = A^c \cap B^c$.
+        Since $A^c$ is finite, the intersection $A^c \cap B^c$ is a subset of a finite set, hence finite.
+        Since $(A \cup B)^c$ is finite, $A \cup B \in \C$.
+    \end{itemize}
+\end{itemize}
+Thus, $\C$ is an algebra.
+
+\textbf{Part (2): If $X$ is finite, $\C = \Pset(X)$.}
+Let $A \in \Pset(X)$ be any subset. Since $X$ is finite, every subset of $X$ is finite. Therefore, $A$ is finite. By the definition of $\C$, $A \in \C$. Thus $\Pset(X) \subseteq \C$. Since $\C \subseteq \Pset(X)$ by definition, we have $\C = \Pset(X)$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 2
+\begin{problem}
+Show that the intersection of two semi-algebras (resp. algebras) of subsets of a nonempty set $X$ is not necessarily a semi-algebra (resp. algebra).
+\end{problem}
+
+\begin{solution}
+\textbf{Note on Algebras:} The intersection of two algebras is \textit{always} an algebra.
+\begin{proof}
+Let $\mathcal{A}_1, \mathcal{A}_2$ be algebras.
+1. $X \in \mathcal{A}_1 \cap \mathcal{A}_2$.
+2. If $E \in \mathcal{A}_1 \cap \mathcal{A}_2$, then $E^c \in \mathcal{A}_1$ and $E^c \in \mathcal{A}_2$, so $E^c \in \cap$.
+3. If $A, B \in \cap$, then $A \cup B \in \mathcal{A}_1$ and $\in \mathcal{A}_2$, so $\in \cap$.
+\end{proof}
+The problem likely meant to ask about the \textbf{union} of algebras (which is not an algebra) or strictly about semi-algebras. We provide the counterexample for semi-algebras.
+
+\textbf{Counterexample for Semi-Algebras:}
+Let $X = \{1, 2, 3, 4\}$.
+Define:
+\[ \S_1 = \{\emptyset, \{1\}, \{2\}, \{3, 4\}, X\} \]
+\[ \S_2 = \{\emptyset, \{1\}, \{3\}, \{2, 4\}, X\} \]
+Both are semi-algebras (closed under intersection; complements are disjoint unions).
+The intersection is:
+\[ \mathcal{I} = \S_1 \cap \S_2 = \{\emptyset, \{1\}, X\} \]
+Consider $A = \{1\} \in \mathcal{I}$. Its complement is $A^c = \{2, 3, 4\}$.
+Can $A^c$ be written as a finite disjoint union of sets in $\mathcal{I}$?
+The only non-empty disjoint sets in $\mathcal{I}$ are $\{1\}$ and $X$. Neither can be used to form $\{2, 3, 4\}$ via disjoint union.
+Thus, $\mathcal{I}$ fails the complement condition. It is not a semi-algebra.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 3
+\begin{problem}
+Let $X, Y$ be nonempty sets, and $\F, \G$ semi-algebras of subsets of $X$ and $Y$ respectively. Let $\F \times \G = \{F \times G \mid F \in \F, G \in \G\}$. Show that $\F \times \G \subseteq \Pset(X \times Y)$ is a semi-algebra.
+\end{problem}
+
+\begin{solution}
+Let $\S = \F \times \G$. We verify the three semi-algebra properties:
+
+1. \textbf{Contains $\emptyset$ and Whole Space:}
+   $\emptyset_X \in \F, \emptyset_Y \in \G \implies \emptyset = \emptyset_X \times \emptyset_Y \in \S$.
+   $X \in \F, Y \in \G \implies X \times Y \in \S$.
+
+2. \textbf{Closed under Finite Intersection:}
+   Let $R_1 = A_1 \times B_1$ and $R_2 = A_2 \times B_2$ be in $\S$.
+   \[ R_1 \cap R_2 = (A_1 \cap A_2) \times (B_1 \cap B_2) \]
+   Since $\F, \G$ are semi-algebras, $A_1 \cap A_2 \in \F$ and $B_1 \cap B_2 \in \G$. Thus $R_1 \cap R_2 \in \S$.
+
+3. \textbf{Complements are Finite Disjoint Unions:}
+   Let $R = A \times B \in \S$.
+   \[ R^c = (X \times Y) \setminus (A \times B) = (A^c \times Y) \cup (A \times B^c) \]
+   Note that these two terms are not necessarily disjoint. A standard disjoint decomposition is:
+   \[ R^c = (A^c \times B) \sqcup (A \times B^c) \sqcup (A^c \times B^c) \]
+   Alternatively, using the full space decomposition:
+   \[ R^c = (A^c \times Y) \sqcup (A \times B^c) \]
+   Since $\F, \G$ are semi-algebras:
+   $A^c = \bigsqcup_{i=1}^n E_i$ where $E_i \in \F$.
+   $B^c = \bigsqcup_{j=1}^m F_j$ where $F_j \in \G$.
+   Substituting these:
+   \[ A^c \times Y = \left(\bigsqcup_{i=1}^n E_i\right) \times Y = \bigsqcup_{i=1}^n (E_i \times Y) \]
+   \[ A \times B^c = A \times \left(\bigsqcup_{j=1}^m F_j\right) = \bigsqcup_{j=1}^m (A \times F_j) \]
+   Since $Y \in \G$ (implied if semi-algebra generates algebra on whole space, or assume $Y \in \G$ as standard), $E_i \times Y \in \S$. Similarly $A \times F_j \in \S$.
+   The union of these two disjoint groups forms a finite disjoint union of elements in $\S$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 4
+\begin{problem}
+Let $X$ be a nonempty set. Let $\emptyset \neq E \subseteq X$ and let $\C$ be a semi-algebra (resp. algebra). Define $\C \cap E := \{A \cap E \mid A \in \C\}$. Show that $\C \cap E$ is a semi-algebra (resp. algebra) of subsets of $E$.
+\end{problem}
+
+\begin{solution}
+\textbf{Case: Algebra}
+Let $\C$ be an algebra. Let $\C_E = \C \cap E$.
+1. $X \in \C \implies X \cap E = E \in \C_E$.
+2. Let $B \in \C_E$. Then $B = A \cap E$ for $A \in \C$.
+   $E \setminus B = E \cap B^c = E \cap (A \cap E)^c = E \cap (A^c \cup E^c) = (E \cap A^c) \cup (E \cap E^c) = E \cap A^c$.
+   Since $A \in \C \implies A^c \in \C$, we have $E \setminus B \in \C_E$.
+3. Let $B_1, B_2 \in \C_E$. $B_1 \cup B_2 = (A_1 \cap E) \cup (A_2 \cap E) = (A_1 \cup A_2) \cap E$.
+   Since $A_1 \cup A_2 \in \C$, the union is in $\C_E$.
+
+\textbf{Case: Semi-Algebra}
+Let $\C$ be a semi-algebra.
+1. $\emptyset, X \in \C \implies \emptyset, E \in \C_E$.
+2. Intersection: $(A_1 \cap E) \cap (A_2 \cap E) = (A_1 \cap A_2) \cap E \in \C_E$.
+3. Complement: Let $B = A \cap E$.
+   $E \setminus B = E \cap A^c$.
+   Since $\C$ is a semi-algebra, $A^c = \bigsqcup_{i=1}^n F_i$ for $F_i \in \C$.
+   \[ E \setminus B = E \cap \left( \bigsqcup_{i=1}^n F_i \right) = \bigsqcup_{i=1}^n (F_i \cap E) \]
+   This is a finite disjoint union of elements in $\C_E$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 5
+\begin{problem}
+Let $f: X \to Y$. Let $\C$ be a semi-algebra (resp. algebra) on $Y$. Show that $f^{-1}(\C) := \{f^{-1}(E) \mid E \in \C\}$ is a semi-algebra (resp. algebra) on $X$.
+\end{problem}
+
+\begin{solution}
+We use the properties: $f^{-1}(\emptyset)=\emptyset, f^{-1}(Y)=X, f^{-1}(A^c)=(f^{-1}(A))^c, f^{-1}(\cup A_i)=\cup f^{-1}(A_i), f^{-1}(\cap A_i)=\cap f^{-1}(A_i)$.
+
+\textbf{Case: Algebra}
+1. $Y \in \C \implies X \in f^{-1}(\C)$.
+2. $A \in f^{-1}(\C) \implies A = f^{-1}(E)$. $A^c = f^{-1}(E^c)$. Since $E^c \in \C$, $A^c \in f^{-1}(\C)$.
+3. Union follows similarly from $f^{-1}(E \cup F)$.
+
+\textbf{Case: Semi-Algebra}
+1. $\emptyset, X \in f^{-1}(\C)$.
+2. Intersection follows from $f^{-1}(E \cap F)$.
+3. Complement: Let $A = f^{-1}(E)$. Since $E \in \C$, $E^c = \bigsqcup_{i=1}^n F_i$.
+   \[ A^c = f^{-1}(E^c) = f^{-1}\left(\bigsqcup_{i=1}^n F_i\right) = \bigcup_{i=1}^n f^{-1}(F_i) \]
+   Disjointness is preserved: if $F_i \cap F_j = \emptyset$, then $f^{-1}(F_i) \cap f^{-1}(F_j) = f^{-1}(F_i \cap F_j) = \emptyset$.
+   Thus $A^c$ is a finite disjoint union of elements in $f^{-1}(\C)$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 6
+\begin{problem}
+Let $\F \subseteq \Pset(X)$ and $\G \subseteq \Pset(Y)$ be algebras. Define $\F \times \G \subseteq \Pset(X \times Y)$. Prove or disprove: $\F \times \G$ is an algebra.
+\end{problem}
+
+\begin{solution}
+\textbf{Disprove.}
+Let $X = Y = \R$. Let $\F, \G$ be the algebra generated by intervals.
+Consider $R_1 = (0, 1) \times (0, 1) \in \F \times \G$ and $R_2 = (2, 3) \times (2, 3) \in \F \times \G$.
+The union $S = R_1 \cup R_2$ consists of two disjoint squares on the diagonal.
+If $S \in \F \times \G$, then $S = A \times B$ for some $A \subseteq X, B \subseteq Y$.
+The projection of $S$ onto $X$ is $A = (0, 1) \cup (2, 3)$.
+The projection of $S$ onto $Y$ is $B = (0, 1) \cup (2, 3)$.
+The product $A \times B$ contains the "cross term" $(0, 1) \times (2, 3)$, e.g., the point $(0.5, 2.5)$.
+However, $(0.5, 2.5) \notin R_1 \cup R_2$.
+Thus $R_1 \cup R_2 \neq A \times B$. The collection is not closed under union.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 7
+\begin{problem}
+Let $S \subseteq \Pset(\Omega)$ be nonempty. If $\mu, \nu$ are measures on $(\Omega, \F(S))$ such that $\mu(\Omega) < \infty$, $\nu(\Omega) < \infty$, and $\mu(A) = \nu(A)$ for all $A \in S$, does it imply $\mu(A) = \nu(A)$ for all $A \in \F(S)$?
+\end{problem}
+
+\begin{solution}
+\textbf{No.} The uniqueness theorem requires $S$ to be a $\pi$-system (closed under finite intersection). Without this property, extensions are not unique.
+
+\textbf{Counterexample:}
+$\Omega = \{a, b, c, d\}$.
+$S = \{\{a, b\}, \{b, c\}\}$. Note $\{a, b\} \cap \{b, c\} = \{b\} \notin S$.
+Define $\mu$ by weights: $\mu(a)=\mu(b)=\mu(c)=\mu(d)=1$. Total 4.
+$\mu(\{a, b\}) = 2, \mu(\{b, c\}) = 2$.
+Define $\nu$ by weights: $\nu(a)=0, \nu(b)=2, \nu(c)=0, \nu(d)=2$. Total 4.
+$\nu(\{a, b\}) = 2, \nu(\{b, c\}) = 2$.
+They agree on $S$ and $\Omega$.
+However, for $\{b\} \in \F(S)$, $\mu(\{b\}) = 1$ but $\nu(\{b\}) = 2$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 8
+\begin{problem}
+Suppose $(\Omega, \F, \mu)$ is a measure space. For all $E, F \in \F$, show that $\mu(E \cup F) + \mu(E \cap F) = \mu(E) + \mu(F)$.
+\end{problem}
+
+\begin{solution}
+Decompose the sets into disjoint components:
+$A = E \setminus F$, $B = F \setminus E$, $C = E \cap F$.
+Then:
+$E = A \sqcup C$
+$F = B \sqcup C$
+$E \cup F = A \sqcup B \sqcup C$
+By additivity of $\mu$:
+$\mu(E) = \mu(A) + \mu(C)$
+$\mu(F) = \mu(B) + \mu(C)$
+$\mu(E \cup F) = \mu(A) + \mu(B) + \mu(C)$
+Adding the first two:
+$\mu(E) + \mu(F) = \mu(A) + \mu(B) + 2\mu(C) = (\mu(A) + \mu(B) + \mu(C)) + \mu(C) = \mu(E \cup F) + \mu(E \cap F)$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 9
+\begin{problem}
+Show that $\B(\R)$ is generated by the collections $\S_1$ to $\S_8$.
+\end{problem}
+
+\begin{solution}
+Let $\mathcal{O}$ be the standard topology (open sets). We know $\sigma(\mathcal{O}) = \B(\R)$ and open intervals generate $\mathcal{O}$.
+\begin{enumerate}
+    \item[(a)] $\S_1 = \{(a, b)\}$: Definition.
+    \item[(b)] $\S_2 = \{[a, b]\}$: $(a, b) = \bigcup_{n=1}^\infty [a + 1/n, b - 1/n]$. $\sigma(\S_2) \supseteq \S_1$.
+    \item[(c)] $\S_3 = \{(a, b]\}$: $(a, b) = \bigcup_{n=1}^\infty (a, b - 1/n]$.
+    \item[(d)] $\S_4 = \{[a, b)\}$: $(a, b) = \bigcup_{n=1}^\infty [a + 1/n, b)$.
+    \item[(e)] $\S_5 = \{(a, \infty)\}$: $(a, b) = (a, \infty) \cap (-\infty, b)$. Need $(-\infty, b)$.
+    $(-\infty, b) = \bigcup_{k=1}^\infty (-k, b)$. And $(-k, b) = \R \setminus ((-\infty, -k] \cup [b, \infty))$.
+    Simpler: $(a, b) = (a, \infty) \cap [b, \infty)^c$.
+    $[b, \infty) = \bigcap (b-1/n, \infty)$.
+    So $\S_5$ generates Borel.
+    \item[(f)-(h)] Symmetric arguments using complements and countable unions/intersections apply.
+\end{enumerate}
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 10
+\begin{problem}
+\begin{enumerate}
+    \item Show $(\R, \B(\R), \delta_a)$ is a measure space. Compute $\B(\R)_{\delta_a}$.
+    \item Generalize to $\R^d$.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{Measure Property:}
+Let $\{E_i\}$ be disjoint.
+If $a \notin \cup E_i$, then $a \notin E_i \, \forall i$. LHS $0$, RHS $\sum 0 = 0$.
+If $a \in \cup E_i$, then $a \in E_k$ for exactly one $k$. LHS $1$. RHS $\delta_a(E_k) + \sum_{j \ne k} 0 = 1$.
+Thus it is a measure.
+
+\textbf{Completion:}
+A set $E$ is in the completion $\overline{\B}$ if $E = B \cup N$ with $B \in \B$ and $N \subset M$ where $\delta_a(M)=0$.
+Let $M = \R \setminus \{a\}$. $M$ is open, so $M \in \B$. $\delta_a(M) = 0$.
+Any subset $S \subseteq \R \setminus \{a\}$ is a subset of a null set.
+Let $A \subseteq \R$.
+If $a \in A$, $A = \{a\} \cup (A \setminus \{a\})$. $\{a\} \in \B$, $A \setminus \{a\}$ is null. So $A \in \overline{\B}$.
+If $a \notin A$, $A \subseteq M$, so $A$ is null.
+Thus $\overline{\B} = \Pset(\R)$.
+The result is identical for $\R^d$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 11
+\begin{problem}
+\begin{enumerate}[label=(\alph*)]
+    \item Show that if $E_1, E_2 \in \M$ and $\mu(E_1 \Delta E_2)=0$, then $\mu(E_1) = \mu(E_2)$.
+    \item Show that if $\mu$ is complete, $E_1 \in \M$, and $\mu(E_1 \Delta E_2)=0$, then $E_2 \in \M$.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a)}
+$E_1 \Delta E_2 = (E_1 \setminus E_2) \cup (E_2 \setminus E_1)$.
+$\mu(E_1 \Delta E_2) = 0 \implies \mu(E_1 \setminus E_2) = 0$ and $\mu(E_2 \setminus E_1) = 0$.
+$E_1 = (E_1 \cap E_2) \cup (E_1 \setminus E_2)$.
+$\mu(E_1) = \mu(E_1 \cap E_2) + 0$.
+$E_2 = (E_2 \cap E_1) \cup (E_2 \setminus E_1)$.
+$\mu(E_2) = \mu(E_1 \cap E_2) + 0$.
+Thus $\mu(E_1) = \mu(E_2)$.
+
+\textbf{(b)}
+Given $\mu(E_1 \Delta E_2)=0$.
+$E_2 \setminus E_1 \subseteq E_1 \Delta E_2$. Since $\mu$ is complete, subsets of null sets are measurable. So $E_2 \setminus E_1 \in \M$.
+$E_1 \setminus E_2 \subseteq E_1 \Delta E_2 \implies E_1 \setminus E_2 \in \M$.
+$E_1 \cap E_2 = E_1 \setminus (E_1 \setminus E_2) \in \M$.
+Finally, $E_2 = (E_1 \cap E_2) \cup (E_2 \setminus E_1)$. Both parts are measurable, so $E_2 \in \M$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 12
+\begin{problem}
+Properties of Lebesgue Measure $\lambda$:
+\begin{enumerate}[label=(\alph*)]
+    \item Regularity with open intervals.
+    \item $\lambda(\{x\}) = 0$.
+    \item $\lambda(A) = 0$ for countable $A$.
+    \item Translation invariance.
+    \item Dilation scaling $\lambda(tA) = |t|\lambda(A)$.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a)} $\lambda(A) = \pi^*(A) = \inf \sum \nu(I_j)$. The definition uses $(a, b]$. For any $(a, b]$, and $\epsilon > 0$, $(a, b] \subset (a, b+\epsilon)$. The length increases arbitrarily slightly. Thus, the infimum over open intervals is the same.
+
+\textbf{(b)} For any $\epsilon > 0$, cover $\{x\}$ with $(x - \epsilon/2, x + \epsilon/2)$.
+$\lambda(\{x\}) \le \epsilon$. Since true for all $\epsilon$, $\lambda(\{x\}) = 0$.
+
+\textbf{(c)} Let $A = \{x_i\}$. $\lambda(A) \le \sum \lambda(\{x_i\}) = \sum 0 = 0$.
+
+\textbf{(d)} $\lambda(t+A) = \inf \{ \sum \ell(I_j) \mid t+A \subseteq \cup I_j \}$.
+$\{I_j\}$ covers $t+A \iff \{I_j - t\}$ covers $A$.
+$\ell(I_j) = \ell(I_j - t)$.
+Thus the set of possible sums is identical. $\lambda(t+A) = \lambda(A)$.
+
+\textbf{(e)} Cover $A$ with $I_j = (a_j, b_j)$. Then $tI_j$ covers $tA$.
+Length $\ell(tI_j) = |t(b_j - a_j)| = |t|\ell(I_j)$.
+Thus $\inf \sum \ell(tI_j) = |t| \inf \sum \ell(I_j)$.
+\end{solution}
+
+\hrulefill
+
+% PROBLEM 13
+\begin{problem}
+Verify $\mathbb{P}(\Omega)=1$ for:
+\begin{enumerate}[label=(\alph*)]
+    \item Bernoulli.
+    \item Binomial.
+    \item Poisson.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a) Bernoulli:}
+$\mathbb{P}(\Omega) = \mathbb{P}(\{H\}) + \mathbb{P}(\{T\}) = 1/2 + 1/2 = 1$.
+
+\textbf{(b) Binomial:}
+\[ \mathbb{P}(\Omega) = \sum_{k=0}^N \binom{N}{k} p^k (1-p)^{N-k} = (p + (1-p))^N = 1^N = 1 \]
+
+\textbf{(c) Poisson:}
+\[ \mathbb{P}(\Omega) = \sum_{k=0}^\infty \frac{e^{-\lambda} \lambda^k}{k!} = e^{-\lambda} \underbrace{\sum_{k=0}^\infty \frac{\lambda^k}{k!}}_{e^\lambda} = e^{-\lambda} e^\lambda = 1 \]
+\textbf{Odd Integers ($A$):}
+\[ \mathbb{P}(A) = e^{-\lambda} \sum_{k=0}^\infty \frac{\lambda^{2k+1}}{(2k+1)!} = e^{-\lambda} \sinh(\lambda) = \frac{1 - e^{-2\lambda}}{2} \]
+\end{solution}
+
+\end{document}

@@ -1,0 +1,272 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{MA 408: Measure Theory -- Practice Set 3 Solutions}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem 1}
+\textbf{Statement:} Suppose $f:\mathbb{R}\rightarrow\mathbb{R}$ is a monotone function. Show that $f$ is measurable.
+
+\begin{proof}
+Let $f$ be a monotone function. Without loss of generality, assume $f$ is monotonically increasing (the proof for a decreasing function is analogous). To show that $f$ is measurable (specifically, Borel measurable and hence Lebesgue measurable), it suffices to show that for any $\alpha \in \mathbb{R}$, the set $E_\alpha = \{x \in \mathbb{R} : f(x) \le \alpha\}$ is a measurable set.
+
+Let $\alpha \in \mathbb{R}$. Suppose $x \in E_\alpha$. Since $f$ is monotonically increasing, for any $y \le x$, we have $f(y) \le f(x) \le \alpha$. Thus, $y \in E_\alpha$. 
+This property implies that if $E_\alpha$ is non-empty and bounded above, $E_\alpha$ must be a ray of the form $(-\infty, c)$ or $(-\infty, c]$ where $c = \sup E_\alpha$. 
+If $E_\alpha$ is empty, it is measurable. If $E_\alpha$ is not bounded above, then $E_\alpha = \mathbb{R}$, which is also measurable. 
+In all cases, $E_\alpha$ is an interval. Since all intervals are Borel sets and hence Lebesgue measurable, the preimage of any interval under $f$ is measurable. Therefore, $f$ is measurable.
+\end{proof}
+
+\section*{Problem 2}
+\textbf{Statement:} Suppose $f:\mathbb{R}\rightarrow\mathbb{R}$ such that $f^{-1}((r,\infty))$ is measurable for all $r\in\mathbb{Q}$. Show that $f$ is measurable.
+
+\begin{proof}
+To prove that $f$ is measurable, it is sufficient to show that the set $f^{-1}((\alpha, \infty)) = \{x \in \mathbb{R} : f(x) > \alpha\}$ is measurable for every $\alpha \in \mathbb{R}$.
+
+Let $\alpha \in \mathbb{R}$ be an arbitrary real number. Because the rational numbers $\mathbb{Q}$ are dense in $\mathbb{R}$, we can express the interval $(\alpha, \infty)$ as a countable union of intervals with rational endpoints:
+\[
+(\alpha, \infty) = \bigcup_{\substack{r \in \mathbb{Q} \\ r > \alpha}} (r, \infty)
+\]
+Taking the preimage under $f$ on both sides, and using the property that preimages preserve unions, we obtain:
+\[
+f^{-1}((\alpha, \infty)) = f^{-1}\left( \bigcup_{\substack{r \in \mathbb{Q} \\ r > \alpha}} (r, \infty) \right) = \bigcup_{\substack{r \in \mathbb{Q} \\ r > \alpha}} f^{-1}((r, \infty))
+\]
+By the problem's hypothesis, $f^{-1}((r, \infty))$ is a measurable set for each $r \in \mathbb{Q}$. Since the set of rational numbers is countable, the union on the right-hand side is a countable union of measurable sets. Because measurable sets form a $\sigma$-algebra, they are closed under countable unions. Thus, $f^{-1}((\alpha, \infty))$ is measurable for all $\alpha \in \mathbb{R}$, meaning $f$ is measurable.
+\end{proof}
+
+\section*{Problem 3}
+\textbf{Statement:} Let $f:\mathbb{R}\rightarrow\mathbb{R}\cup\{\pm\infty\}$ be a measurable function. Show that $\{x \in\mathbb{R}:f(x)=\alpha\}$ is measurable for any $\alpha\in\mathbb{R}\cup\{\pm\infty\}$.
+
+\begin{proof}
+Since $f$ is a measurable function to the extended real numbers, the sets $\{x : f(x) > c\}$ and $\{x : f(x) \ge c\}$ are measurable for any $c \in \mathbb{R}$. We consider three cases for $\alpha$:
+
+\textbf{Case 1:} $\alpha \in \mathbb{R}$ (finite).
+We can express the singleton set $\{\alpha\}$ as $[\alpha, \infty) \cap (-\infty, \alpha]$. Consequently,
+\[
+\{x \in \mathbb{R} : f(x) = \alpha\} = \{x \in \mathbb{R} : f(x) \ge \alpha\} \cap \{x \in \mathbb{R} : f(x) \le \alpha\}
+\]
+Because $f$ is measurable, both $\{x : f(x) \ge \alpha\}$ and $\{x : f(x) \le \alpha\}$ are measurable sets. The intersection of two measurable sets is measurable.
+
+\textbf{Case 2:} $\alpha = \infty$.
+We can express the set of elements mapping to $\infty$ as a countable intersection:
+\[
+\{x \in \mathbb{R} : f(x) = \infty\} = \bigcap_{n=1}^{\infty} \{x \in \mathbb{R} : f(x) > n\}
+\]
+Each set $\{x : f(x) > n\}$ is measurable by the definition of measurability of $f$. A countable intersection of measurable sets is measurable.
+
+\textbf{Case 3:} $\alpha = -\infty$.
+Similarly,
+\[
+\{x \in \mathbb{R} : f(x) = -\infty\} = \bigcap_{n=1}^{\infty} \{x \in \mathbb{R} : f(x) < -n\}
+\]
+Again, this is a countable intersection of measurable sets. 
+Thus, for any $\alpha \in \mathbb{R} \cup \{\pm\infty\}$, the set $\{x \in \mathbb{R} : f(x) = \alpha\}$ is measurable.
+\end{proof}
+
+\section*{Problem 4}
+\textbf{Statement:} Let $f:[0,1]\rightarrow\mathbb{R}$ such that $\{x\in[0,1]|f(x)=c\}$ is measurable for all $c\in\mathbb{R}$. Is $f$ measurable?
+
+\begin{proof}
+No, $f$ is not necessarily measurable. We can demonstrate this via a counterexample. 
+It is a standard result (using the Axiom of Choice) that there exists a set $N \subset [0,1]$ that is not Lebesgue measurable. 
+
+Define the function $f: [0,1] \rightarrow \mathbb{R}$ as follows:
+\[
+f(x) = \begin{cases} 
+x & \text{if } x \in N \\
+x + 2 & \text{if } x \notin N 
+\end{cases}
+\]
+First, observe that $f$ is injective (one-to-one). If $x \in N$, $f(x) \in [0,1]$. If $x \notin N$, $f(x) \in [2,3]$. Thus, no value in $N$ can map to the same value as an element outside of $N$. Moreover, $x \mapsto x$ and $x \mapsto x+2$ are strictly increasing, so no two elements within the same piecewise domain map to the same value.
+
+Since $f$ is injective, the preimage of any singleton $\{c\}$ for $c \in \mathbb{R}$ contains at most one point. A set containing zero or one point has Lebesgue measure zero, and is therefore trivially Lebesgue measurable. Hence, the condition $\{x \in [0,1] : f(x) = c\}$ is measurable for all $c \in \mathbb{R}$ holds.
+
+However, consider the set $f^{-1}([0,1])$. By definition of our function, $f(x) \in [0,1]$ if and only if $x \in N$. Therefore:
+\[
+f^{-1}([0,1]) = N
+\]
+Since $N$ is not a measurable set, the preimage of the Borel set $[0,1]$ is not measurable. This implies that $f$ is not a measurable function.
+\end{proof}
+
+\section*{Problem 5}
+\textbf{Statement:} Suppose $\emptyset\subset E\subset\mathbb{R}$ is a Lebesgue measurable set with finite Lebesgue measure. Define $f_{E}:\mathbb{R}\rightarrow\mathbb{R}$ by $f_E(x)=\lambda(E\cap(-\infty,x])$ for all $x\in\mathbb{R}$. Show that $f_E$ is an increasing function and satisfies the Lipschitz condition $|f_E(x)-f_E(y)|\le|x-y|$ for all $x, y\in\mathbb{R}$.
+
+\begin{proof}
+First, we show $f_E$ is increasing. Let $x < y$. Then $(-\infty, x] \subset (-\infty, y]$. We can partition $E \cap (-\infty, y]$ as the disjoint union:
+\[
+E \cap (-\infty, y] = \left( E \cap (-\infty, x] \right) \cup \left( E \cap (x, y] \right)
+\]
+Because $\lambda$ is a measure (and thus finitely additive on disjoint measurable sets), we have:
+\[
+\lambda(E \cap (-\infty, y]) = \lambda(E \cap (-\infty, x]) + \lambda(E \cap (x, y])
+\]
+Substituting the definition of $f_E$, this is:
+\[
+f_E(y) = f_E(x) + \lambda(E \cap (x, y])
+\]
+Since Lebesgue measure is non-negative, $\lambda(E \cap (x, y]) \ge 0$. Therefore, $f_E(y) \ge f_E(x)$, which shows $f_E$ is an increasing function.
+
+Next, we establish the Lipschitz condition. From the equation above, for $x < y$, we have:
+\[
+|f_E(y) - f_E(x)| = f_E(y) - f_E(x) = \lambda(E \cap (x, y])
+\]
+By the monotonicity of the Lebesgue measure, since $E \cap (x, y] \subset (x, y]$, it follows that:
+\[
+\lambda(E \cap (x, y]) \le \lambda((x, y]) = y - x = |x - y|
+\]
+Because the problem is symmetric with respect to $x$ and $y$, for any $x, y \in \mathbb{R}$, we conclude:
+\[
+|f_E(x) - f_E(y)| \le |x - y|
+\]
+This completes the proof.
+\end{proof}
+
+\section*{Problem 6}
+\textbf{Statement:} Let $f:\mathbb{R}\rightarrow\mathbb{R}$ is a simple function defined by $f=\sum_{i=1}^{n}c_{i}\chi_{E_{i}}$. Prove that $f$ is measurable if and only if $E_{1},\dots,E_{n}$ are measurable.
+
+\begin{proof}
+\textit{Clarification:} The "only if" direction ($\implies$) requires the assumption that the sum represents the standard canonical form of a simple function; that is, the constants $c_1, \dots, c_n$ are distinct, and the sets $E_1, \dots, E_n$ are pairwise disjoint and partition the domain. If they are not distinct or disjoint, the "only if" statement is generally false (e.g., if $E_1$ is non-measurable, $E_2 = E_1^c$, and $c_1 = c_2 = 1$, then $f \equiv 1$ is measurable but $E_1, E_2$ are not). We proceed under the standard canonical assumption.
+
+\textbf{($\impliedby$ direction):} 
+Suppose $E_1, \dots, E_n$ are measurable sets. The indicator function $\chi_{E_i}$ is measurable for each $i$ because for any $\alpha \in \mathbb{R}$, the preimage $\chi_{E_i}^{-1}((\alpha, \infty))$ is either $\emptyset$, $E_i$, or $\mathbb{R}$, all of which are measurable sets. Since finite linear combinations of measurable functions are measurable, $f = \sum_{i=1}^n c_i \chi_{E_i}$ is a measurable function.
+
+\textbf{($\implies$ direction):} 
+Suppose $f$ is measurable. Under the canonical representation, the sets $E_i$ are pairwise disjoint and the values $c_i$ are distinct non-zero real numbers. (We can ignore sets where $c_i = 0$ as they do not contribute to the sum, or treat $c_0 = 0$ over $E_0 = \mathbb{R} \setminus \cup E_i$). 
+Because the $c_i$ are distinct and the $E_i$ are disjoint, we have exactly:
+\[
+E_i = \{x \in \mathbb{R} : f(x) = c_i\} = f^{-1}(\{c_i\})
+\]
+By the result proved in Problem 3, the inverse image of a singleton set under a measurable function is a measurable set. Hence, each $E_i$ is measurable.
+\end{proof}
+
+\section*{Problem 7}
+\textbf{Statement:} Suppose $\Omega\ne\emptyset$. Let $(\Omega, \mathcal{F})$ is a measurable space and let $f_{n}:\Omega\rightarrow \mathbb{R}\cup\{\pm\infty\}$ be a sequence of measurable functions. Show that the set $E=\{\omega\in\Omega|\lim_{n\rightarrow\infty}f_{n}(\omega) \text{ exists}\}$ is measurable.
+
+\begin{proof}
+Let $f_n$ be a sequence of measurable functions taking values in the extended real numbers $\overline{\mathbb{R}} = \mathbb{R} \cup \{\pm\infty\}$. 
+
+Recall that for any sequence in $\overline{\mathbb{R}}$, the limit exists in $\overline{\mathbb{R}}$ if and only if its limit superior equals its limit inferior. 
+Define two functions $g, h : \Omega \rightarrow \overline{\mathbb{R}}$ as follows:
+\[
+g(\omega) = \limsup_{n \to \infty} f_n(\omega) = \inf_{k \ge 1} \sup_{n \ge k} f_n(\omega)
+\]
+\[
+h(\omega) = \liminf_{n \to \infty} f_n(\omega) = \sup_{k \ge 1} \inf_{n \ge k} f_n(\omega)
+\]
+Since the supremum and infimum of a countable family of measurable functions are measurable, both $g$ and $h$ are measurable functions. 
+
+The set $E$ where the limit exists can be characterized as:
+\[
+E = \{\omega \in \Omega : g(\omega) = h(\omega)\}
+\]
+Because $g$ and $h$ are measurable functions, we can construct the set $E$ via:
+\[
+E = \{\omega : g(\omega) = h(\omega) = \infty\} \cup \{\omega : g(\omega) = h(\omega) = -\infty\} \cup \{\omega : g(\omega) = h(\omega) \in \mathbb{R}\}
+\]
+The first set is $g^{-1}(\{\infty\}) \cap h^{-1}(\{\infty\})$, which is measurable. The second is $g^{-1}(\{-\infty\}) \cap h^{-1}(\{-\infty\})$, which is measurable. For the finite part, let $g_0$ and $h_0$ be the restrictions to where they are finite. The set where $g(\omega) - h(\omega) = 0$ is the preimage of $\{0\}$ under the measurable function $g - h$. 
+
+Thus, $E$ is formed by countable intersections, unions, and differences of measurable sets, making $E \in \mathcal{F}$ measurable.
+
+\textit{Note:} If "limit exists" implies a \textit{finite} limit in $\mathbb{R}$, we can use the Cauchy criterion: a sequence $\{f_n(\omega)\}$ converges in $\mathbb{R}$ iff it is a Cauchy sequence.
+\[
+E = \bigcap_{k=1}^{\infty} \bigcup_{N=1}^{\infty} \bigcap_{m, n \ge N} \left\{\omega \in \Omega : |f_n(\omega) - f_m(\omega)| < \frac{1}{k}\right\}
+\]
+Since $f_n, f_m$ are measurable, the set inside the bracket is measurable. Countable unions and intersections of measurable sets are measurable, so $E \in \mathcal{F}$.
+\end{proof}
+
+\section*{Problem 8}
+\textbf{Statement:} Let $f:(0,1)\rightarrow\mathbb{R}$ is differentiable. Is the derivative $f^{\prime}$ measurable?
+
+\begin{proof}
+Yes, the derivative $f'$ is measurable. 
+
+Since $f$ is differentiable on $(0,1)$, the derivative at any $x \in (0,1)$ is given by the limit of the difference quotient:
+\[
+f'(x) = \lim_{n \rightarrow \infty} \frac{f(x + \frac{1}{n}) - f(x)}{1/n}
+\]
+Notice that for each $n$, the function $x \mapsto f(x + 1/n)$ is only well-defined for $x \in (0, 1 - 1/n)$. To sidestep domain issues, we can define the difference quotient rigorously using a sequence that approaches 0 from either side without escaping $(0,1)$, or simply define $g_n(x)$ as:
+\[
+g_n(x) = n \left[ f\left(x + \frac{1}{n}\right) - f(x) \right] \chi_{(0, 1 - 1/n)}(x) + n \left[ f(x) - f\left(x - \frac{1}{n}\right) \right] \chi_{[1 - 1/n, 1)}(x)
+\]
+Because $f$ is differentiable on $(0,1)$, it is continuous, and hence Lebesgue/Borel measurable. Therefore, each $g_n(x)$ is constructed from sums, compositions, and scalar multiplications of measurable functions, making $g_n$ measurable for each $n$. 
+
+Since $f'(x) = \lim_{n \to \infty} g_n(x)$ pointwise for all $x \in (0,1)$, and the pointwise limit of a sequence of measurable functions is measurable, $f'$ must be measurable.
+\end{proof}
+
+\section*{Problem 9}
+\textbf{Statement:} Find $\lim_{n\rightarrow\infty}\int_{[0,n]}\left(1+\frac{x}{n}\right)^{n}dx$.
+
+\begin{proof}
+We want to evaluate:
+\[
+\lim_{n \to \infty} \int_0^\infty \chi_{[0,n]}(x) \left(1 + \frac{x}{n}\right)^n dx
+\]
+Let $f_n(x) = \chi_{[0,n]}(x) \left(1 + \frac{x}{n}\right)^n$. For each fixed $x \ge 0$, we have:
+\[
+\lim_{n \to \infty} f_n(x) = \lim_{n \to \infty} \left(1 + \frac{x}{n}\right)^n = e^x
+\]
+Notice that for $x \ge 0$ and $n \ge 1$, $f_n(x) \ge 0$. We can evaluate the limit using the Monotone Convergence Theorem (MCT) if the sequence is increasing. Let's verify $f_n(x)$ is increasing in $n$. 
+For $x > 0$, taking the logarithm of the non-indicator part: $n \ln(1 + x/n)$. The derivative with respect to $n$ is:
+\[
+\ln\left(1 + \frac{x}{n}\right) + n \left(\frac{1}{1 + x/n}\right) \left(-\frac{x}{n^2}\right) = \ln\left(1 + \frac{x}{n}\right) - \frac{x/n}{1 + x/n}
+\]
+Using the inequality $\ln(1+t) > \frac{t}{1+t}$ for $t > 0$, we set $t = x/n$ to see that the derivative is positive. Thus, $(1+x/n)^n$ increases as $n$ increases. The domain $[0,n]$ also expands as $n$ increases, so $f_n(x) \le f_{n+1}(x)$ for all $x$. 
+
+By the Monotone Convergence Theorem:
+\[
+\lim_{n \to \infty} \int_0^\infty f_n(x) dx = \int_0^\infty \lim_{n \to \infty} f_n(x) dx = \int_0^\infty e^x dx
+\]
+The integral evaluates to:
+\[
+\int_0^\infty e^x dx = \left[ e^x \right]_0^\infty = \infty
+\]
+Thus, the limit is $\infty$. 
+
+\textit{Alternatively:} By Fatou's Lemma, $\liminf_{n} \int f_n \ge \int \liminf_n f_n = \int_0^\infty e^x dx = \infty$.
+\end{proof}
+
+\section*{Problem 10}
+\textbf{Statement:} Let $\Omega\ne\emptyset$. Suppose $(\Omega, \mathcal{F}, \mu)$ is a measure space. Let $f:\Omega\rightarrow [0,\infty]$ is a measurable function. Show that $\int_{\Omega}fd\mu>0$ if and only if $\mu(\{\omega\in\Omega|f(\omega)>0\})>0$.
+
+\begin{proof}
+Let $E = \{\omega \in \Omega : f(\omega) > 0\}$. Since $f$ is non-negative, $f \ge 0$ everywhere on $\Omega$.
+
+\textbf{($\implies$ direction):} 
+We proceed by contraposition. Suppose $\mu(E) = \mu(\{\omega : f(\omega) > 0\}) = 0$. 
+This means $f = 0$ almost everywhere (a.e.) with respect to $\mu$. We can write the integral of $f$ over $\Omega$ by splitting it into integrals over $E$ and $E^c$:
+\[
+\int_\Omega f \, d\mu = \int_E f \, d\mu + \int_{E^c} f \, d\mu
+\]
+Since $\mu(E) = 0$, the integral of any non-negative measurable function over a set of measure zero is $0$, so $\int_E f d\mu = 0$. 
+On $E^c$, by definition, $f(\omega) = 0$. Thus, $\int_{E^c} 0 \, d\mu = 0$. 
+Consequently, $\int_\Omega f d\mu = 0$. This contradicts the assumption that $\int_\Omega f d\mu > 0$. Thus, it must be that $\mu(E) > 0$.
+
+\textbf{($\impliedby$ direction):}
+Suppose $\mu(E) > 0$. We can express $E$ as a countable union of sets:
+\[
+E = \bigcup_{n=1}^\infty E_n, \quad \text{where } E_n = \left\{\omega \in \Omega : f(\omega) \ge \frac{1}{n}\right\}
+\]
+By subadditivity of the measure $\mu$, we have:
+\[
+\mu(E) \le \sum_{n=1}^\infty \mu(E_n)
+\]
+Since $\mu(E) > 0$, there must exist at least one integer $N \ge 1$ such that $\mu(E_N) > 0$. 
+Now, consider the integral of $f$ over $\Omega$. Since $f \ge 0$, we have:
+\[
+\int_\Omega f \, d\mu \ge \int_{E_N} f \, d\mu
+\]
+On the set $E_N$, we know $f(\omega) \ge \frac{1}{N}$. Therefore:
+\[
+\int_{E_N} f \, d\mu \ge \int_{E_N} \frac{1}{N} \, d\mu = \frac{1}{N} \mu(E_N)
+\]
+Since $N$ is finite and $\mu(E_N) > 0$, it follows that $\frac{1}{N} \mu(E_N) > 0$. Therefore, $\int_\Omega f \, d\mu > 0$.
+\end{proof}
+
+\end{document}

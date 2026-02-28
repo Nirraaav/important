@@ -1,0 +1,133 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+\section*{Solutions to Measure Theory Problems}
+
+\subsection*{Problem 1}
+\textbf{Suppose $\{a_n\}_{n=1}^\infty$ is a sequence of nonnegative real numbers. Define $f: \mathbb{N} \to [0, \infty)$ by $f(n) = a_n$ for all $n \in \mathbb{N}$. Let us consider the measure space $(\mathbb{N}, \mathcal{P}(\mathbb{N}), \mathbf{c})$, where $\mathbf{c}$ is the counting measure. Show that $f$ is measurable and}
+\[ \int_{\mathbb{N}} f d\mathbf{c} = \sum_{i=1}^{\infty} a_i. \]
+
+\begin{proof}
+\textbf{Measurability:} 
+By definition, a function $f: \mathbb{N} \to [0, \infty)$ is measurable with respect to the measurable space $(\mathbb{N}, \mathcal{P}(\mathbb{N}))$ if for every Borel set $B \in \mathcal{B}([0, \infty))$, the preimage $f^{-1}(B)$ is in the $\sigma$-algebra $\mathcal{P}(\mathbb{N})$. Since $\mathcal{P}(\mathbb{N})$ is the power set of $\mathbb{N}$ (the collection of all subsets of $\mathbb{N}$), any subset of $\mathbb{N}$ is in $\mathcal{P}(\mathbb{N})$. Therefore, $f^{-1}(B) \in \mathcal{P}(\mathbb{N})$ is trivially true for all $B$. Hence, $f$ is measurable.
+
+\vspace{0.5em}
+\noindent\textbf{Integration:}
+We can approximate the function $f$ by a sequence of simple functions. For each $k \in \mathbb{N}$, define the simple function $\phi_k: \mathbb{N} \to [0, \infty)$ by:
+\[ \phi_k(n) = \sum_{i=1}^{k} a_i \chi_{\{i\}}(n) \]
+where $\chi_{\{i\}}$ is the indicator function of the singleton set $\{i\}$.
+
+Observe the following properties of the sequence $\{\phi_k\}$:
+\begin{enumerate}
+    \item Each $\phi_k$ is a non-negative simple function since it takes finitely many values on measurable sets (singletons are measurable).
+    \item For any $n \in \mathbb{N}$, $\phi_k(n) \le \phi_{k+1}(n)$. If $n \le k$, $\phi_k(n) = a_n$ and $\phi_{k+1}(n) = a_n$. If $n > k+1$, both are $0$. If $n = k+1$, $\phi_k(n) = 0 \le a_{k+1} = \phi_{k+1}(n)$. Thus, the sequence $\{\phi_k\}$ is monotonically increasing.
+    \item For any fixed $n \in \mathbb{N}$, as soon as $k \ge n$, we have $\phi_k(n) = a_n = f(n)$. Therefore, $\lim_{k \to \infty} \phi_k(n) = f(n)$ for all $n \in \mathbb{N}$. That is, $\phi_k \nearrow f$ pointwise.
+\end{enumerate}
+
+By the Monotone Convergence Theorem (MCT), we can exchange the limit and the integral:
+\[ \int_{\mathbb{N}} f d\mathbf{c} = \lim_{k \to \infty} \int_{\mathbb{N}} \phi_k d\mathbf{c} \]
+By the definition of the integral of a simple function:
+\[ \int_{\mathbb{N}} \phi_k d\mathbf{c} = \sum_{i=1}^{k} a_i \mathbf{c}(\{i\}) \]
+Since $\mathbf{c}$ is the counting measure, the measure of any singleton set is $\mathbf{c}(\{i\}) = 1$. Thus:
+\[ \int_{\mathbb{N}} \phi_k d\mathbf{c} = \sum_{i=1}^{k} a_i \]
+Taking the limit as $k \to \infty$:
+\[ \int_{\mathbb{N}} f d\mathbf{c} = \lim_{k \to \infty} \sum_{i=1}^{k} a_i = \sum_{i=1}^{\infty} a_i \]
+This completes the proof.
+\end{proof}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\subsection*{Problem 2}
+\textbf{Suppose $\Omega$ is a non-empty set and $(\Omega, \mathcal{F}, \mu)$ is a measure space. Let $f_n: \Omega \to [0, \infty]$ be measurable for all $n \in \mathbb{N}$ such that $f_n \ge f_{n+1}$ for all $n \in \mathbb{N}$ and $f_n(\omega) \to f(\omega)$ as $n \to \infty$ for all $\omega \in \Omega$. Prove that if $f_1$ is Lebesgue integrable then}
+\[ \lim_{n\to\infty} \int_\Omega f_n d\mu = \int_\Omega f d\mu. \]
+\textbf{What happens if $f_1$ is not Lebesgue integrable?}
+
+\begin{proof}
+\textbf{Proof of the Equality:} \\
+We are given that $f_n \ge f_{n+1} \ge 0$, and $\lim_{n \to \infty} f_n = f$ pointwise. We are also given that $f_1$ is Lebesgue integrable, which means $\int_\Omega f_1 d\mu < \infty$.
+Since $0 \le f_n \le f_1$ for all $n$, and $0 \le f \le f_1$, both $f_n$ and $f$ are also Lebesgue integrable by monotonicity of the integral. 
+
+Define a new sequence of functions $g_n = f_1 - f_n$. 
+Since $f_1$ and $f_n$ are measurable and take values in $[0, \infty)$, $g_n$ is well-defined and measurable. 
+Observe the properties of $\{g_n\}$:
+\begin{enumerate}
+    \item \textbf{Non-negativity:} Since $f_1 \ge f_n$, we have $g_n \ge 0$.
+    \item \textbf{Monotonicity:} Since $f_n \ge f_{n+1}$, multiplying by $-1$ gives $-f_n \le -f_{n+1}$. Adding $f_1$ to both sides yields $f_1 - f_n \le f_1 - f_{n+1}$, which means $g_n \le g_{n+1}$. Thus, $\{g_n\}$ is a monotonically increasing sequence of non-negative measurable functions.
+    \item \textbf{Pointwise Limit:} $\lim_{n \to \infty} g_n(\omega) = \lim_{n \to \infty} (f_1(\omega) - f_n(\omega)) = f_1(\omega) - f(\omega)$.
+\end{enumerate}
+By the Monotone Convergence Theorem (MCT) applied to $\{g_n\}$, we have:
+\[ \lim_{n \to \infty} \int_\Omega g_n d\mu = \int_\Omega \left( \lim_{n \to \infty} g_n \right) d\mu \]
+Substituting the definitions gives:
+\[ \lim_{n \to \infty} \int_\Omega (f_1 - f_n) d\mu = \int_\Omega (f_1 - f) d\mu \]
+Since $f_1$, $f_n$, and $f$ are all integrable (their integrals are finite real numbers), we can use the linearity of the Lebesgue integral to split the integrals:
+\[ \lim_{n \to \infty} \left( \int_\Omega f_1 d\mu - \int_\Omega f_n d\mu \right) = \int_\Omega f_1 d\mu - \int_\Omega f d\mu \]
+Because $\int_\Omega f_1 d\mu$ is a finite constant, we can pull it out of the limit:
+\[ \int_\Omega f_1 d\mu - \lim_{n \to \infty} \int_\Omega f_n d\mu = \int_\Omega f_1 d\mu - \int_\Omega f d\mu \]
+Subtracting $\int_\Omega f_1 d\mu$ from both sides (which is valid since it is finite) yields:
+\[ - \lim_{n \to \infty} \int_\Omega f_n d\mu = - \int_\Omega f d\mu \implies \lim_{n \to \infty} \int_\Omega f_n d\mu = \int_\Omega f d\mu \]
+This completes the proof of the limit equality.
+
+\vspace{1em}
+\noindent\textbf{What happens if $f_1$ is not Lebesgue integrable?} \\
+If $f_1$ is not integrable (i.e., $\int_\Omega f_1 d\mu = \infty$), the theorem may fail. The equality $\lim_{n\to\infty} \int_\Omega f_n d\mu = \int_\Omega f d\mu$ is no longer guaranteed. 
+
+\textbf{Counterexample:} Let $\Omega = \mathbb{R}$ with the Lebesgue measure $\mu$. Define $f_n: \mathbb{R} \to [0, \infty)$ by:
+\[ f_n(x) = \chi_{[n, \infty)}(x) \]
+where $\chi$ is the indicator function.
+\begin{itemize}
+    \item The sequence is monotonically decreasing because $[n+1, \infty) \subset [n, \infty)$, so $f_{n+1}(x) \le f_n(x)$ for all $x$.
+    \item For any fixed $x \in \mathbb{R}$, there exists an integer $N > x$. For all $n \ge N$, $x \notin [n, \infty)$, so $f_n(x) = 0$. Thus, $f_n(x) \to 0$ as $n \to \infty$. So the pointwise limit is $f(x) = 0$.
+    \item The integral of $f_n$ is $\int_{\mathbb{R}} \chi_{[n, \infty)} d\mu = \mu([n, \infty)) = \infty$ for all $n$.
+    \item Therefore, $\lim_{n \to \infty} \int_{\mathbb{R}} f_n d\mu = \lim_{n \to \infty} \infty = \infty$.
+    \item However, the integral of the limit function is $\int_{\mathbb{R}} 0 d\mu = 0$.
+\end{itemize}
+Here, $f_1 = \chi_{[1, \infty)}$ has infinite integral, meaning it is not Lebesgue integrable. As demonstrated, $\infty \neq 0$, so the result fails without the integrability of $f_1$.
+\end{proof}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\subsection*{Problem 3}
+\textbf{Provide an example where strict inequality holds in Fatou's Lemma.}
+
+\begin{proof}
+Fatou's Lemma states that for a sequence of non-negative measurable functions $\{f_n\}$ on a measure space $(\Omega, \mathcal{F}, \mu)$:
+\[ \int_\Omega \left( \liminf_{n \to \infty} f_n \right) d\mu \le \liminf_{n \to \infty} \int_\Omega f_n d\mu \]
+To show strict inequality, we need an example where the left side is strictly less than the right side. We consider a sequence of "traveling bumps" where mass escapes to infinity.
+
+Let $\Omega = \mathbb{R}$ equipped with the Lebesgue measure $\mu$. Define the sequence of functions $f_n: \mathbb{R} \to [0, \infty)$ by:
+\[ f_n(x) = \chi_{[n, n+1]}(x) \]
+These are indicator functions of intervals of length 1, sliding to the right as $n$ increases.
+
+\begin{enumerate}
+    \item \textbf{Calculate the pointwise limit inferior:} \\
+    For any fixed $x \in \mathbb{R}$, as $n \to \infty$, $n$ will eventually become strictly greater than $x$. Thus, for all sufficiently large $n$, $x \notin [n, n+1]$, which means $f_n(x) = 0$.
+    Because the sequence $\{f_n(x)\}$ eventually becomes constantly $0$, its limit exists and is $0$. Therefore:
+    \[ \liminf_{n \to \infty} f_n(x) = \lim_{n \to \infty} f_n(x) = 0 \quad \text{for all } x \in \mathbb{R}. \]
+    The integral of this limit inferior is:
+    \[ \int_{\mathbb{R}} \left( \liminf_{n \to \infty} f_n \right) d\mu = \int_{\mathbb{R}} 0 \, d\mu = 0 \]
+
+    \item \textbf{Calculate the limit inferior of the integrals:} \\
+    For each $n \in \mathbb{N}$, the integral of $f_n$ is the measure of the interval $[n, n+1]$:
+    \[ \int_{\mathbb{R}} f_n d\mu = \int_{\mathbb{R}} \chi_{[n, n+1]} d\mu = \mu([n, n+1]) = (n+1) - n = 1 \]
+    Since the sequence of integrals is the constant sequence $\{1, 1, 1, \dots\}$, its limit inferior is $1$:
+    \[ \liminf_{n \to \infty} \int_{\mathbb{R}} f_n d\mu = \liminf_{n \to \infty} 1 = 1 \]
+\end{enumerate}
+
+Comparing the two results, we have:
+\[ 0 = \int_{\mathbb{R}} \left( \liminf_{n \to \infty} f_n \right) d\mu < \liminf_{n \to \infty} \int_{\mathbb{R}} f_n d\mu = 1 \]
+Thus, strict inequality holds. 
+
+\textit{(Note: A similar phenomenon can occur on finite measure spaces if mass escapes "vertically". For example, on $\Omega = (0, 1)$, $f_n(x) = n \chi_{(0, 1/n)}(x)$ also yields $0 < 1$.)}
+\end{proof}
+
+\end{document}

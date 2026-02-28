@@ -1,0 +1,153 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{MA 408: Measure Theory -- Practice Set 2 Solutions}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem 1}
+
+\textbf{Statement:} Let $\Omega$ be a nonempty set and let $(\Omega, \mathcal{F}, \mu)$ be a measure space. Define 
+$$ \mathcal{F}_{\mu} := \{A \cup N \mid A \in \mathcal{F}, N \subseteq E, E \in \mathcal{F}, \mu(E) = 0\} \subseteq \mathcal{P}(\Omega) $$.
+
+\subsection*{(a) Show that $\mathcal{F}_{\mu}$ is a $\sigma$-algebra and $\mathcal{F} \subseteq \mathcal{F}_{\mu}$.}
+
+\begin{proof}
+First, we show that $\mathcal{F} \subseteq \mathcal{F}_{\mu}$. Let $A \in \mathcal{F}$. We can express $A$ as $A = A \cup \emptyset$. Since $\emptyset \subseteq \emptyset$, $\emptyset \in \mathcal{F}$, and $\mu(\emptyset) = 0$, it follows by definition that $A \in \mathcal{F}_{\mu}$. Thus, $\mathcal{F} \subseteq \mathcal{F}_{\mu}$.
+
+Next, we prove that $\mathcal{F}_{\mu}$ is a $\sigma$-algebra on $\Omega$ by verifying the three required properties:
+\begin{enumerate}
+    \item \textbf{Contains the empty set:} Since $\emptyset \in \mathcal{F}$, the inclusion $\mathcal{F} \subseteq \mathcal{F}_{\mu}$ immediately implies $\emptyset \in \mathcal{F}_{\mu}$. (Similarly, $\Omega \in \mathcal{F}_{\mu}$).
+    
+    \item \textbf{Closed under complementation:} Let $B \in \mathcal{F}_{\mu}$. By definition, $B = A \cup N$ for some $A \in \mathcal{F}$ and $N \subseteq E \in \mathcal{F}$ with $\mu(E) = 0$. We must show that $B^c \in \mathcal{F}_{\mu}$. By De Morgan's laws, we have:
+    $$ B^c = (A \cup N)^c = A^c \cap N^c $$
+    We can partition this intersection into two disjoint parts based on $E$:
+    $$ B^c = (A^c \cap N^c \cap E^c) \cup (A^c \cap N^c \cap E) $$
+    Notice that $N \subseteq E$ implies $E^c \subseteq N^c$. Therefore, $A^c \cap N^c \cap E^c = A^c \cap E^c = (A \cup E)^c$. Let us define:
+    $$ A' = A^c \cap E^c \quad \text{and} \quad N' = A^c \cap N^c \cap E $$
+    Since $A, E \in \mathcal{F}$ and $\mathcal{F}$ is a $\sigma$-algebra, $A' \in \mathcal{F}$. Furthermore, $N' \subseteq E$ and $E \in \mathcal{F}$ with $\mu(E) = 0$. Thus, $B^c = A' \cup N'$ perfectly fits the definition of $\mathcal{F}_{\mu}$, proving closure under complementation.
+    
+    \item \textbf{Closed under countable unions:} Let $\{B_i\}_{i=1}^{\infty}$ be a countable sequence of sets in $\mathcal{F}_{\mu}$. For each $i$, we can write $B_i = A_i \cup N_i$, where $A_i \in \mathcal{F}$ and $N_i \subseteq E_i \in \mathcal{F}$ with $\mu(E_i) = 0$. The union is:
+    $$ \bigcup_{i=1}^{\infty} B_i = \left( \bigcup_{i=1}^{\infty} A_i \right) \cup \left( \bigcup_{i=1}^{\infty} N_i \right) $$
+    Let $A = \bigcup_{i=1}^{\infty} A_i$. Since $\mathcal{F}$ is a $\sigma$-algebra, $A \in \mathcal{F}$. Let $N = \bigcup_{i=1}^{\infty} N_i$ and $E = \bigcup_{i=1}^{\infty} E_i$. Clearly, $N \subseteq E$. Since $\mathcal{F}$ is closed under countable unions, $E \in \mathcal{F}$. By countable subadditivity of the measure $\mu$, we have:
+    $$ 0 \le \mu(E) = \mu\left(\bigcup_{i=1}^{\infty} E_i\right) \le \sum_{i=1}^{\infty} \mu(E_i) = \sum_{i=1}^{\infty} 0 = 0 $$
+    Thus, $\mu(E) = 0$. Since $\bigcup_{i=1}^{\infty} B_i = A \cup N$ with $A \in \mathcal{F}$, $N \subseteq E \in \mathcal{F}$, and $\mu(E) = 0$, the union belongs to $\mathcal{F}_{\mu}$.
+\end{enumerate}
+Therefore, $\mathcal{F}_{\mu}$ is a $\sigma$-algebra.
+\end{proof}
+
+\subsection*{(b) Show that $\overline{\mu}: \mathcal{F}_{\mu} \rightarrow [0, \infty]$ is a measure on $\mathcal{F}_{\mu}$ with $\overline{\mu}|_{\mathcal{F}} = \mu$.}
+
+\begin{proof}
+First, we must explicitly define $\overline{\mu}$ and show it is well-defined. We define $\overline{\mu}(A \cup N) = \mu(A)$ for any $A \cup N \in \mathcal{F}_{\mu}$. 
+
+To show well-definedness, suppose $B \in \mathcal{F}_{\mu}$ has two representations: $B = A_1 \cup N_1 = A_2 \cup N_2$, where $A_i \in \mathcal{F}$, $N_i \subseteq E_i \in \mathcal{F}$, and $\mu(E_1) = \mu(E_2) = 0$. We must show $\mu(A_1) = \mu(A_2)$.
+Observe that $A_1 \subseteq A_1 \cup N_1 = A_2 \cup N_2 \subseteq A_2 \cup E_2$. 
+By the monotonicity of measures, we have:
+$$ \mu(A_1) \le \mu(A_2 \cup E_2) \le \mu(A_2) + \mu(E_2) = \mu(A_2) + 0 = \mu(A_2) $$
+By symmetric logic, $A_2 \subseteq A_1 \cup E_1$, which implies $\mu(A_2) \le \mu(A_1)$. Therefore, $\mu(A_1) = \mu(A_2)$, and $\overline{\mu}$ is well-defined.
+
+Now we show $\overline{\mu}$ is a measure on $\mathcal{F}_{\mu}$:
+\begin{enumerate}
+    \item \textbf{Measure of empty set:} Since $\emptyset = \emptyset \cup \emptyset$, we have $\overline{\mu}(\emptyset) = \mu(\emptyset) = 0$.
+    \item \textbf{Countable additivity:} Let $\{B_i\}_{i=1}^{\infty}$ be a sequence of pairwise disjoint sets in $\mathcal{F}_{\mu}$. Write $B_i = A_i \cup N_i$ as per the definition. Since $A_i \subseteq B_i$, the sets $\{A_i\}_{i=1}^{\infty}$ are also pairwise disjoint in $\mathcal{F}$. Let $B = \bigcup_{i=1}^{\infty} B_i$. As shown in part (a), $B = A \cup N$ where $A = \bigcup_{i=1}^{\infty} A_i$. Therefore:
+    $$ \overline{\mu}\left(\bigcup_{i=1}^{\infty} B_i\right) = \mu(A) = \mu\left(\bigcup_{i=1}^{\infty} A_i\right) $$
+    Because $\mu$ is a measure on $\mathcal{F}$ and the $A_i$ are disjoint,
+    $$ \mu\left(\bigcup_{i=1}^{\infty} A_i\right) = \sum_{i=1}^{\infty} \mu(A_i) = \sum_{i=1}^{\infty} \overline{\mu}(B_i) $$
+    This establishes countable additivity.
+\end{enumerate}
+Finally, to see that $\overline{\mu}|_{\mathcal{F}} = \mu$, let $A \in \mathcal{F}$. We write $A = A \cup \emptyset$. By definition, $\overline{\mu}(A) = \mu(A)$, completing the proof.
+\end{proof}
+
+\subsection*{(c) Show that $(\Omega, \mathcal{F}_{\mu}, \overline{\mu})$ is the completion of $(\Omega, \mathcal{F}, \mu)$.}
+
+\begin{proof}
+By definition, the completion of a measure space is the smallest complete measure space that extends the original space. Thus, we must prove two things: (1) $(\Omega, \mathcal{F}_{\mu}, \overline{\mu})$ is complete, and (2) it is the smallest such extension.
+
+\textbf{1. Completeness:} A measure space is complete if every subset of a measure-zero set is measurable. Let $Z \in \mathcal{F}_{\mu}$ such that $\overline{\mu}(Z) = 0$, and let $W \subseteq Z$. We must show $W \in \mathcal{F}_{\mu}$.
+Since $Z \in \mathcal{F}_{\mu}$, $Z = A \cup N$ for some $A \in \mathcal{F}$ and $N \subseteq E \in \mathcal{F}$ with $\mu(E) = 0$. Because $\overline{\mu}(Z) = \mu(A) = 0$, we have $\mu(A) = 0$.
+Now, consider the set $W$. We have $W \subseteq Z = A \cup N \subseteq A \cup E$. 
+Let $E' = A \cup E$. Since $A, E \in \mathcal{F}$, $E' \in \mathcal{F}$. The measure is $\mu(E') \le \mu(A) + \mu(E) = 0 + 0 = 0$.
+We can express $W$ as $W = \emptyset \cup W$. Here, $\emptyset \in \mathcal{F}$, $W \subseteq E' \in \mathcal{F}$, and $\mu(E') = 0$. Thus, $W \in \mathcal{F}_{\mu}$. This proves the space is complete.
+
+\textbf{2. Smallest Extension:} Let $(\Omega, \Sigma, \nu)$ be any complete measure space such that $\mathcal{F} \subseteq \Sigma$ and $\nu|_{\mathcal{F}} = \mu$. We must show $\mathcal{F}_{\mu} \subseteq \Sigma$.
+Let $B \in \mathcal{F}_{\mu}$, so $B = A \cup N$ with $A \in \mathcal{F}, N \subseteq E \in \mathcal{F}, \mu(E) = 0$. Since $\mathcal{F} \subseteq \Sigma$, we have $A \in \Sigma$ and $E \in \Sigma$. Also, $\nu(E) = \mu(E) = 0$. Because $\Sigma$ is complete, the subset $N \subseteq E$ must be in $\Sigma$. Since $\Sigma$ is a $\sigma$-algebra, $B = A \cup N \in \Sigma$. Hence, $\mathcal{F}_{\mu} \subseteq \Sigma$, making it the minimal complete extension.
+\end{proof}
+
+\section*{Problem 2}
+
+\textbf{Statement:} Suppose $\{f_{n}\}_{n=1}^{\infty}$ is an increasing sequence of nonnegative simple functions on $\Omega$ and suppose $g$ is a nonnegative simple function on $\Omega$. If $g(\omega) \le \lim_{n\rightarrow\infty} f_{n}(\omega)$ for all $\omega \in \Omega$, then show that
+$$ \int_{\Omega} g d\mu \le \lim_{n\rightarrow\infty} \int_{\Omega} f_{n} d\mu $$.
+
+\begin{proof}
+Let $g$ be a nonnegative simple function, so it can be expressed in standard representation as $g = \sum_{i=1}^{k} c_i \chi_{E_i}$, where $c_i > 0$ are distinct constants, and $E_i \in \mathcal{F}$ are pairwise disjoint measurable sets partitioning the support of $g$. 
+
+Fix a real number $\epsilon \in (0, 1)$. For each $n \in \mathbb{N}$, define the set:
+$$ A_n = \{\omega \in \Omega \mid f_n(\omega) \ge (1 - \epsilon)g(\omega)\} $$
+Since $f_n$ and $g$ are simple (and thus measurable) functions, each $A_n$ is a measurable set in $\mathcal{F}$. Furthermore, since the sequence $\{f_n\}$ is monotonically increasing ($f_n(\omega) \le f_{n+1}(\omega)$), it follows directly that $A_n \subseteq A_{n+1}$ for all $n$.
+
+We claim that $\Omega = \bigcup_{n=1}^{\infty} A_n$. 
+Let $\omega \in \Omega$. 
+Case 1: $g(\omega) = 0$. Then $(1-\epsilon)g(\omega) = 0$. Since $f_n \ge 0$, $f_1(\omega) \ge 0$, so $\omega \in A_1$.
+Case 2: $g(\omega) > 0$. By hypothesis, $\lim_{n \to \infty} f_n(\omega) \ge g(\omega)$. Since $\epsilon > 0$, we have $(1-\epsilon)g(\omega) < g(\omega)$. By the definition of the limit, there exists some integer $N$ such that for all $n \ge N$, $f_n(\omega) > (1-\epsilon)g(\omega)$. Thus, $\omega \in A_N$.
+This establishes $\bigcup_{n=1}^{\infty} A_n = \Omega$.
+
+Now, for any fixed $n$, because $f_n \ge 0$, we can write:
+$$ \int_{\Omega} f_n d\mu \ge \int_{A_n} f_n d\mu $$
+On the set $A_n$, we know $f_n \ge (1-\epsilon)g$. By the monotonicity and linearity of the integral for simple functions:
+$$ \int_{A_n} f_n d\mu \ge \int_{A_n} (1-\epsilon)g d\mu = (1-\epsilon) \int_{A_n} \left( \sum_{i=1}^{k} c_i \chi_{E_i} \right) d\mu = (1-\epsilon) \sum_{i=1}^{k} c_i \mu(A_n \cap E_i) $$
+Combining the inequalities, we have:
+$$ \int_{\Omega} f_n d\mu \ge (1-\epsilon) \sum_{i=1}^{k} c_i \mu(A_n \cap E_i) $$
+Taking the limit as $n \to \infty$ on both sides:
+$$ \lim_{n \to \infty} \int_{\Omega} f_n d\mu \ge (1-\epsilon) \sum_{i=1}^{k} c_i \lim_{n \to \infty} \mu(A_n \cap E_i) $$
+Because $\{A_n \cap E_i\}_{n=1}^{\infty}$ is an increasing sequence of measurable sets whose union is $\Omega \cap E_i = E_i$, continuity of measure from below guarantees that $\lim_{n \to \infty} \mu(A_n \cap E_i) = \mu(E_i)$. Substituting this in yields:
+$$ \lim_{n \to \infty} \int_{\Omega} f_n d\mu \ge (1-\epsilon) \sum_{i=1}^{k} c_i \mu(E_i) = (1-\epsilon) \int_{\Omega} g d\mu $$
+Since this inequality holds for any $\epsilon \in (0, 1)$, we take the limit as $\epsilon \to 0^+$ to conclude:
+$$ \lim_{n \to \infty} \int_{\Omega} f_n d\mu \ge \int_{\Omega} g d\mu $$
+\end{proof}
+
+\section*{Problem 3}
+
+\textbf{Statement:} Suppose $f: \Omega \rightarrow [0, \infty]$ is a measurable function. Define
+$$ I(f) := \sup\left\{\int_{\Omega} g d\mu \mid g \text{ is a simple function and } 0 \le g \le f\right\} $$.
+Show that $I(f) = \int_{\Omega} f d\mu$.
+
+\begin{proof}
+By the standard definition in measure theory, the Lebesgue integral of a non-negative measurable function $f$ is defined as:
+$$ \int_{\Omega} f d\mu = \lim_{n \to \infty} \int_{\Omega} f_n d\mu $$
+where $\{f_n\}_{n=1}^{\infty}$ is any sequence of non-negative simple functions such that $0 \le f_n \le f_{n+1}$ and $\lim_{n \to \infty} f_n(\omega) = f(\omega)$ pointwise for all $\omega \in \Omega$. 
+(One standard construction for such a sequence is $f_n = \sum_{k=1}^{n 2^n} \frac{k-1}{2^n} \chi_{E_{n,k}} + n \chi_{F_n}$ where $E_{n,k} = \{ \omega \mid \frac{k-1}{2^n} \le f(\omega) < \frac{k}{2^n} \}$ and $F_n = \{ \omega \mid f(\omega) \ge n \}$).
+
+We wish to show mutual inequality between $I(f)$ and $\int_{\Omega} f d\mu$.
+
+\textbf{Step 1: Show $\int_{\Omega} f d\mu \le I(f)$}
+For the chosen canonical approximating sequence $\{f_n\}$ where $f_n \uparrow f$, note that each $f_n$ is a simple function satisfying $0 \le f_n \le f$. 
+Therefore, for every $n \in \mathbb{N}$, the integral $\int_{\Omega} f_n d\mu$ is an element of the set 
+$$ \left\{ \int_{\Omega} g d\mu \mid g \text{ is simple, } 0 \le g \le f \right\} $$
+By the definition of the supremum, it follows that for all $n$:
+$$ \int_{\Omega} f_n d\mu \le I(f) $$
+Taking the limit as $n \to \infty$, we obtain:
+$$ \lim_{n \to \infty} \int_{\Omega} f_n d\mu \le I(f) \implies \int_{\Omega} f d\mu \le I(f) $$
+
+\textbf{Step 2: Show $I(f) \le \int_{\Omega} f d\mu$}
+Let $g$ be an arbitrary simple function such that $0 \le g \le f$. We must show that $\int_{\Omega} g d\mu \le \int_{\Omega} f d\mu$.
+Since $f_n$ converges to $f$ pointwise, and $g \le f$, we have:
+$$ g(\omega) \le f(\omega) = \lim_{n \to \infty} f_n(\omega) \quad \text{for all } \omega \in \Omega $$
+Here, $\{f_n\}$ is an increasing sequence of nonnegative simple functions, and $g$ is a nonnegative simple function bounded by their limit. By the result proven in Problem 2, this setup strictly implies:
+$$ \int_{\Omega} g d\mu \le \lim_{n \to \infty} \int_{\Omega} f_n d\mu $$
+By definition, the right-hand side is exactly $\int_{\Omega} f d\mu$. Thus:
+$$ \int_{\Omega} g d\mu \le \int_{\Omega} f d\mu $$
+Since this inequality holds for \textit{any} simple function $g$ satisfying $0 \le g \le f$, $\int_{\Omega} f d\mu$ is an upper bound for the set $\{ \int_{\Omega} g d\mu \mid \text{simple } g, 0 \le g \le f \}$. Because the supremum $I(f)$ is the least upper bound, it must be that:
+$$ I(f) \le \int_{\Omega} f d\mu $$
+
+Combining Step 1 and Step 2, we conclude that $I(f) = \int_{\Omega} f d\mu$.
+\end{proof}
+
+\end{document}

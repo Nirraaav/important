@@ -1,0 +1,111 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}
+\newtheorem*{solution}{Solution}
+
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\pistar}{\pi^*}
+
+\title{MA 408: Measure Theory - Tutorial 3 Solutions}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Setup}
+Let $\Omega \neq \emptyset$ and $\A \subseteq \mathcal{P}(\Omega)$ be an algebra. Let $\nu: \A \to [0, \infty]$ be a measure. The outer measure $\pistar: \mathcal{P}(\Omega) \to [0, \infty]$ is defined by
+\[ \pistar(A) = \inf \left\{ \sum_{i=1}^\infty \nu(E_i) \mid A \subseteq \bigcup_{i=1}^\infty E_i, \, E_i \in \A \right\}. \]
+A subset $A \subseteq \Omega$ is $\pistar$-measurable ($A \in \M$) if for all $E \subseteq \Omega$:
+\[ \pistar(E) = \pistar(E \cap A) + \pistar(E \cap (\Omega \setminus A)). \]
+
+\hrulefill
+
+\begin{problem}
+Let $\{F_i\}_{i=1}^n \subseteq \M$ be a disjoint collection. Show that for every $E \subseteq \Omega$,
+\[ \pistar\left(E \cap \left(\bigcup_{i=1}^n F_i\right)\right) = \sum_{i=1}^n \pistar(E \cap F_i). \]
+\end{problem}
+
+\begin{solution}
+We prove this by induction on $n$.
+
+\textbf{Base Case ($n=1$):} The statement is $\pistar(E \cap F_1) = \pistar(E \cap F_1)$, which is trivial.
+
+\textbf{Inductive Step:} Assume the equality holds for $n=k$. Let $\{F_i\}_{i=1}^{k+1} \subseteq \M$ be disjoint. Let $U_{k+1} = \bigcup_{i=1}^{k+1} F_i$.
+Using the measurability of $F_{k+1}$, we apply the definition with the test set $T = E \cap U_{k+1}$:
+\[ \pistar(E \cap U_{k+1}) = \pistar((E \cap U_{k+1}) \cap F_{k+1}) + \pistar((E \cap U_{k+1}) \cap F_{k+1}^c). \]
+Analyzing the intersections:
+\begin{enumerate}
+    \item $(E \cap U_{k+1}) \cap F_{k+1} = E \cap F_{k+1}$ (since $F_{k+1} \subseteq U_{k+1}$).
+    \item $(E \cap U_{k+1}) \cap F_{k+1}^c$. Since $\{F_i\}$ are disjoint, $U_{k+1} \setminus F_{k+1} = \bigcup_{i=1}^k F_i$. Thus, this term simplifies to $E \cap \left(\bigcup_{i=1}^k F_i\right)$.
+\end{enumerate}
+Substituting these back:
+\[ \pistar\left(E \cap \bigcup_{i=1}^{k+1} F_i\right) = \pistar(E \cap F_{k+1}) + \pistar\left(E \cap \bigcup_{i=1}^k F_i\right). \]
+By the inductive hypothesis:
+\[ \pistar\left(E \cap \bigcup_{i=1}^k F_i\right) = \sum_{i=1}^k \pistar(E \cap F_i). \]
+Therefore:
+\[ \pistar\left(E \cap \bigcup_{i=1}^{k+1} F_i\right) = \pistar(E \cap F_{k+1}) + \sum_{i=1}^k \pistar(E \cap F_i) = \sum_{i=1}^{k+1} \pistar(E \cap F_i). \]
+The statement holds for all $n$ by induction.
+\end{solution}
+
+\hrulefill
+
+\begin{problem}
+Show that $\M$ is a $\sigma$-algebra.
+\end{problem}
+
+\begin{solution}
+We are given that $\M$ is an algebra. To prove it is a $\sigma$-algebra, we show it is closed under countable unions. Let $\{A_n\}_{n=1}^\infty \subseteq \M$. We want to show $A = \bigcup_{n=1}^\infty A_n \in \M$.
+Since $\M$ is an algebra, we can form a disjoint sequence $\{F_n\}_{n=1}^\infty \subseteq \M$ such that $\bigcup F_n = A$ (let $F_1 = A_1, F_n = A_n \setminus \cup_{k<n} A_k$).
+Let $S_n = \bigcup_{k=1}^n F_k$. Since $\M$ is an algebra, $S_n \in \M$.
+For any test set $E \subseteq \Omega$:
+\[ \pistar(E) = \pistar(E \cap S_n) + \pistar(E \cap S_n^c). \]
+Using Problem 1, $\pistar(E \cap S_n) = \sum_{k=1}^n \pistar(E \cap F_k)$.
+Also, $S_n \subseteq A \implies S_n^c \supseteq A^c \implies E \cap S_n^c \supseteq E \cap A^c$. By monotonicity of $\pistar$:
+\[ \pistar(E \cap S_n^c) \ge \pistar(E \cap A^c). \]
+Thus, for all $n$:
+\[ \pistar(E) \ge \sum_{k=1}^n \pistar(E \cap F_k) + \pistar(E \cap A^c). \]
+Taking $n \to \infty$:
+\[ \pistar(E) \ge \sum_{k=1}^\infty \pistar(E \cap F_k) + \pistar(E \cap A^c). \]
+By countable subadditivity of $\pistar$:
+\[ \sum_{k=1}^\infty \pistar(E \cap F_k) \ge \pistar\left(\bigcup_{k=1}^\infty (E \cap F_k)\right) = \pistar(E \cap A). \]
+So,
+\[ \pistar(E) \ge \pistar(E \cap A) + \pistar(E \cap A^c). \]
+The reverse inequality ($\le$) always holds by subadditivity. Hence equality holds, and $A \in \M$.
+\end{solution}
+
+\hrulefill
+
+\begin{problem}
+Show that $\pistar|_{\A} = \nu$: $\pistar(A) = \nu(A)$ for all $A \in \A$.
+\end{problem}
+
+\begin{solution}
+Let $A \in \A$.
+
+\textbf{Step 1: $\pistar(A) \le \nu(A)$}
+Consider the cover of $A$ given by $E_1 = A$ and $E_k = \emptyset$ for $k \ge 2$. Since $\A$ is an algebra, these sets are in $\A$.
+The sum of measures is $\nu(A) + 0 + \dots = \nu(A)$.
+Since $\pistar(A)$ is the infimum over all covers, $\pistar(A) \le \nu(A)$.
+
+\textbf{Step 2: $\pistar(A) \ge \nu(A)$}
+Let $\{E_i\}_{i=1}^\infty \subseteq \A$ be any cover of $A$ ($A \subseteq \bigcup E_i$). We show $\nu(A) \le \sum \nu(E_i)$.
+Define $B_i = A \cap E_i$. Since $\A$ is an algebra, $B_i \in \A$. Also $A = \bigcup B_i$.
+Disjointify $\{B_i\}$ to obtain $\{C_i\}$ where $C_1 = B_1$ and $C_n = B_n \setminus \cup_{k<n} B_k$.
+Then $C_n \in \A$, the $C_n$ are disjoint, and $\bigcup C_n = A$.
+Since $\nu$ is a measure on the algebra $\A$, it is countably additive on $\A$:
+\[ \nu(A) = \sum_{i=1}^\infty \nu(C_i). \]
+Since $C_i \subseteq E_i$, by monotonicity $\nu(C_i) \le \nu(E_i)$.
+\[ \nu(A) \le \sum_{i=1}^\infty \nu(E_i). \]
+Taking the infimum over all covers $\{E_i\}$, we get $\nu(A) \le \pistar(A)$.
+
+\textbf{Conclusion:} $\pistar(A) = \nu(A)$.
+\end{solution}
+
+\end{document}

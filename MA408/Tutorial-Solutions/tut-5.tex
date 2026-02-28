@@ -1,0 +1,159 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+\section*{Solutions to Measure Theory Problems}
+
+\subsection*{Problem 1}
+\textbf{Suppose $(\Omega, \mathcal{F}, \mu)$ is a measure space, $f, g: \Omega \to [0, \infty)$ are simple functions and $\alpha \in [0, \infty)$.}
+
+\vspace{0.5em}
+\noindent \textbf{(a) Show that $\int_\Omega (f + \alpha g) d\mu = \int_\Omega f d\mu + \alpha \int_\Omega g d\mu$.}
+
+\begin{proof}
+Since $f$ and $g$ are non-negative simple functions, they can be represented in their standard forms as:
+\[ f = \sum_{i=1}^{n} a_i \chi_{A_i} \quad \text{and} \quad g = \sum_{j=1}^{m} b_j \chi_{B_j} \]
+where $a_1, \dots, a_n \ge 0$ are distinct, $\{A_i\}_{i=1}^n$ is a finite partition of $\Omega$ into measurable sets, $b_1, \dots, b_m \ge 0$ are distinct, and $\{B_j\}_{j=1}^m$ is also a finite partition of $\Omega$ into measurable sets.
+
+We can define a common refinement of these two partitions. Let $E_{i,j} = A_i \cap B_j$ for $1 \le i \le n$ and $1 \le j \le m$. The collection $\{E_{i,j}\}$ forms a partition of $\Omega$ into disjoint measurable sets. 
+We can rewrite $f$ and $g$ using this common refinement:
+\[ f = \sum_{i=1}^{n} \sum_{j=1}^{m} a_i \chi_{E_{i,j}} \quad \text{and} \quad g = \sum_{i=1}^{n} \sum_{j=1}^{m} b_j \chi_{E_{i,j}} \]
+Therefore, the function $f + \alpha g$ can be written as:
+\[ f + \alpha g = \sum_{i=1}^{n} \sum_{j=1}^{m} (a_i + \alpha b_j) \chi_{E_{i,j}} \]
+This is a simple function since it takes finitely many values on disjoint measurable sets. By the definition of the Lebesgue integral for simple functions (which is independent of the disjoint representation):
+\begin{align*}
+\int_\Omega (f + \alpha g) d\mu &= \sum_{i=1}^{n} \sum_{j=1}^{m} (a_i + \alpha b_j) \mu(E_{i,j}) \\
+&= \sum_{i=1}^{n} \sum_{j=1}^{m} a_i \mu(E_{i,j}) + \alpha \sum_{i=1}^{n} \sum_{j=1}^{m} b_j \mu(E_{i,j}) \\
+&= \sum_{i=1}^{n} a_i \left( \sum_{j=1}^{m} \mu(A_i \cap B_j) \right) + \alpha \sum_{j=1}^{m} b_j \left( \sum_{i=1}^{n} \mu(A_i \cap B_j) \right)
+\end{align*}
+Since $\{B_j\}_{j=1}^m$ partitions $\Omega$, by countable additivity of the measure $\mu$, we have $\sum_{j=1}^{m} \mu(A_i \cap B_j) = \mu(A_i \cap \Omega) = \mu(A_i)$. Similarly, $\sum_{i=1}^{n} \mu(A_i \cap B_j) = \mu(B_j)$. Substituting these back yields:
+\begin{align*}
+\int_\Omega (f + \alpha g) d\mu &= \sum_{i=1}^{n} a_i \mu(A_i) + \alpha \sum_{j=1}^{m} b_j \mu(B_j) \\
+&= \int_\Omega f d\mu + \alpha \int_\Omega g d\mu.
+\end{align*}
+This completes the proof.
+\end{proof}
+
+\vspace{0.5em}
+\noindent \textbf{(b) If $f \le g$ then show that $\int_\Omega f d\mu \le \int_\Omega g d\mu$.}
+
+\begin{proof}
+We use the same common refinement $E_{i,j} = A_i \cap B_j$ as in part (a).
+The hypothesis $f \le g$ means that for all $x \in \Omega$, $f(x) \le g(x)$.
+Take any non-empty set $E_{i,j}$ and choose some $x \in E_{i,j}$. Then $f(x) = a_i$ and $g(x) = b_j$. Consequently, $a_i \le b_j$.
+Since measures are non-negative, $\mu(E_{i,j}) \ge 0$. Thus, multiplying both sides of the inequality gives:
+\[ a_i \mu(E_{i,j}) \le b_j \mu(E_{i,j}) \]
+Note that if $E_{i,j}$ is empty, $\mu(E_{i,j}) = 0$, and the inequality $0 \le 0$ holds trivially.
+Summing this inequality over all $i$ and $j$:
+\[ \sum_{i=1}^{n} \sum_{j=1}^{m} a_i \mu(E_{i,j}) \le \sum_{i=1}^{n} \sum_{j=1}^{m} b_j \mu(E_{i,j}) \]
+By the definition of the integral, this is precisely:
+\[ \int_\Omega f d\mu \le \int_\Omega g d\mu. \]
+\end{proof}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\subsection*{Problem 2}
+\textbf{Suppose $(\Omega, \mathcal{F})$ is a measurable space, $f, g: \Omega \to \overline{\mathbb{R}}$ are measurable functions and $\alpha \in \mathbb{R}$. Show that the following functions are measurable whenever defined.}
+
+\vspace{0.5em}
+Recall that a function $h: \Omega \to \overline{\mathbb{R}}$ is measurable if and only if for every $c \in \mathbb{R}$, the pre-image $\{x \in \Omega \mid h(x) > c\} \in \mathcal{F}$. We will use this criterion, as well as the fact that $\sigma$-algebras are closed under countable set operations.
+
+\begin{enumerate}
+    \item \textbf{$\alpha f$ is measurable:} \\
+    If $\alpha = 0$, then $\alpha f \equiv 0$, a constant function, which is trivially measurable. \\
+    If $\alpha > 0$, then for any $c \in \mathbb{R}$, $\{\alpha f > c\} = \{f > c/\alpha\} \in \mathcal{F}$ since $f$ is measurable. \\
+    If $\alpha < 0$, then $\{\alpha f > c\} = \{f < c/\alpha\}$. We can express this as $\{f < c/\alpha\} = \bigcup_{n=1}^{\infty} \{f \le c/\alpha - 1/n\} = \bigcup_{n=1}^{\infty} (\Omega \setminus \{f > c/\alpha - 1/n\})$. Since $f$ is measurable, each $\{f > c/\alpha - 1/n\} \in \mathcal{F}$, making its complement and their countable union also in $\mathcal{F}$.
+
+    \item \textbf{$\alpha + f$ is measurable:} \\
+    For any $c \in \mathbb{R}$, $\{\alpha + f > c\} = \{f > c - \alpha\} \in \mathcal{F}$, because $f$ is measurable.
+
+    \item \textbf{$f + g$ is measurable:} \\
+    Assume $f + g$ is well-defined. For any $c \in \mathbb{R}$, if $f(x) + g(x) > c$, then $f(x) > c - g(x)$. Because the rational numbers $\mathbb{Q}$ are dense in $\mathbb{R}$, there exists a rational number $r \in \mathbb{Q}$ such that $f(x) > r > c - g(x)$. Therefore, we can write:
+    \[ \{f + g > c\} = \bigcup_{r \in \mathbb{Q}} (\{f > r\} \cap \{g > c - r\}) \]
+    Since $f$ and $g$ are measurable, the sets $\{f > r\}$ and $\{g > c - r\}$ are in $\mathcal{F}$. Their intersection is in $\mathcal{F}$, and the countable union over $r \in \mathbb{Q}$ is also in $\mathcal{F}$.
+
+    \item \textbf{$f^2$ is measurable:} \\
+    For any $c \in \mathbb{R}$:
+    If $c < 0$, $\{f^2 > c\} = \Omega \in \mathcal{F}$. \\
+    If $c \ge 0$, $\{f^2 > c\} = \{f > \sqrt{c}\} \cup \{f < -\sqrt{c}\}$. Both sets on the right are in $\mathcal{F}$ by the measurability of $f$.
+
+    \item \textbf{$fg$ is measurable:} \\
+    First, assume $f \ge 0$ and $g \ge 0$. For $c < 0$, $\{fg > c\} = \Omega \in \mathcal{F}$. For $c \ge 0$, using a density argument similar to addition:
+    \[ \{fg > c\} = \bigcup_{r \in \mathbb{Q}, r > 0} \left( \{f > r\} \cap \{g > c/r\} \right) \]
+    which belongs to $\mathcal{F}$. Thus, the product of non-negative measurable functions is measurable.
+    For general $f$ and $g$, we decompose them into positive and negative parts: $f = f^+ - f^-$ and $g = g^+ - g^-$. 
+    Then $fg = f^+g^+ - f^+g^- - f^-g^+ + f^-g^-$. Each product term consists of non-negative measurable functions, hence measurable. Their sum is measurable by repeated application of the sum rule.
+
+    \item \textbf{$f^+$ and $f^-$ are measurable:} \\
+    We have $f^+ = \max\{f, 0\}$. For any $c \in \mathbb{R}$:
+    If $c < 0$, $\{f^+ > c\} = \Omega \in \mathcal{F}$. \\
+    If $c \ge 0$, $\{f^+ > c\} = \{f > c\} \in \mathcal{F}$. Thus $f^+$ is measurable. \\
+    Similarly, $f^- = \max\{-f, 0\} = (-f)^+$. Since $f$ is measurable, $-f$ is measurable, and hence its positive part $f^-$ is measurable.
+
+    \item \textbf{$|f|$ is measurable:} \\
+    Notice that $|f| = f^+ + f^-$. Since the sum of two measurable functions is measurable, $|f|$ is measurable. Alternatively, $\{|f| > c\} = \{f > c\} \cup \{f < -c\} \in \mathcal{F}$ for $c \ge 0$.
+
+    \item \textbf{$\max\{f, g\}$ and $\min\{f, g\}$ are measurable:} \\
+    For any $c \in \mathbb{R}$:
+    \[ \{\max\{f, g\} > c\} = \{f > c\} \cup \{g > c\} \in \mathcal{F} \]
+    \[ \{\min\{f, g\} > c\} = \{f > c\} \cap \{g > c\} \in \mathcal{F} \]
+    Since $\mathcal{F}$ is closed under finite unions and intersections, both are measurable.
+
+    \item \textbf{$1/f$ is measurable:} \\
+    This function is defined where $f(x) \neq 0$. For any $c \in \mathbb{R}$: \\
+    If $c > 0$, $\{1/f > c\} = \{f > 0\} \cap \{f < 1/c\} \in \mathcal{F}$. \\
+    If $c = 0$, $\{1/f > 0\} = \{f > 0\} \in \mathcal{F}$. \\
+    If $c < 0$, $\{1/f > c\} = \{f > 0\} \cup (\{f < 0\} \cap \{f < 1/c\}) = \{f > 0\} \cup \{f < 1/c\} \in \mathcal{F}$. \\
+    Hence, $1/f$ is measurable.
+\end{enumerate}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\subsection*{Problem 3}
+\textbf{Suppose $(\Omega, \mathcal{F})$ is a measurable space and $f_n: \Omega \to \overline{\mathbb{R}}$ is a sequence of measurable functions.}
+
+\vspace{0.5em}
+\noindent \textbf{(a) Show that $\sup_n f_n$ and $\inf_n f_n$ are measurable.}
+
+\begin{proof}
+Let $h(x) = \sup_n f_n(x)$. For any $c \in \mathbb{R}$, $h(x) > c$ if and only if there exists some $n \in \mathbb{N}$ such that $f_n(x) > c$. In terms of sets:
+\[ \{x \in \Omega \mid \sup_n f_n(x) > c\} = \bigcup_{n=1}^{\infty} \{x \in \Omega \mid f_n(x) > c\} \]
+Because each $f_n$ is measurable, each set $\{f_n > c\} \in \mathcal{F}$. Since $\mathcal{F}$ is a $\sigma$-algebra, it is closed under countable unions, so the union is in $\mathcal{F}$. Thus $\sup_n f_n$ is measurable.
+
+Similarly, let $k(x) = \inf_n f_n(x)$. We note that for any $c \in \mathbb{R}$, $k(x) \ge c$ if and only if $f_n(x) \ge c$ for all $n \in \mathbb{N}$.
+\[ \{x \in \Omega \mid \inf_n f_n(x) \ge c\} = \bigcap_{n=1}^{\infty} \{x \in \Omega \mid f_n(x) \ge c\} \]
+Since $\{f_n \ge c\} = \bigcap_{m=1}^{\infty} \{f_n > c - 1/m\} \in \mathcal{F}$, the countable intersection over $n$ is also in $\mathcal{F}$. A function $k$ where $\{k \ge c\} \in \mathcal{F}$ for all $c$ is measurable.
+\end{proof}
+
+\vspace{0.5em}
+\noindent \textbf{(b) Show that $\limsup_{n \to \infty} f_n$ and $\liminf_{n \to \infty} f_n$ are measurable.}
+
+\begin{proof}
+By definition, the limit superior is given by:
+\[ \limsup_{n \to \infty} f_n = \inf_{k \ge 1} \left( \sup_{n \ge k} f_n \right) \]
+For each $k \ge 1$, let $g_k = \sup_{n \ge k} f_n$. By part (a), the supremum of a countable sequence of measurable functions is measurable, so $g_k$ is measurable for each $k$.
+Then, $\limsup_{n \to \infty} f_n = \inf_{k \ge 1} g_k$. Applying the result of part (a) again for the infimum, we conclude that the limit superior is measurable.
+
+Symmetrically, $\liminf_{n \to \infty} f_n = \sup_{k \ge 1} \left( \inf_{n \ge k} f_n \right)$. Because the infimum $h_k = \inf_{n \ge k} f_n$ is measurable, its countable supremum is also measurable.
+\end{proof}
+
+\vspace{0.5em}
+\noindent \textbf{(c) If the sequence $\{f_n\}$ converges pointwise to $f$, then $f$ is measurable.}
+
+\begin{proof}
+Suppose $f_n \to f$ pointwise on $\Omega$. This means that for every $x \in \Omega$, the sequence of extended real numbers $f_n(x)$ converges to $f(x)$. 
+A standard property of limits is that if a sequence converges, its limit superior and limit inferior coincide with the limit itself. Therefore, we have:
+\[ f(x) = \lim_{n \to \infty} f_n(x) = \limsup_{n \to \infty} f_n(x) = \liminf_{n \to \infty} f_n(x) \]
+By part (b), $\limsup_{n \to \infty} f_n$ is a measurable function. Since $f$ is identically equal to this measurable function, $f$ must also be measurable.
+\end{proof}
+
+\end{document}

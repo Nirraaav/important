@@ -1,0 +1,115 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}
+\newtheorem*{solution}{Solution}
+
+\title{MA 408: Measure Theory - Tutorial 2 Solutions}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{problem}
+Let $\Omega$ be a nonempty set and let $\emptyset \neq \mathcal{F} \subseteq \mathcal{P}(\Omega)$ be a $\sigma$-algebra. Suppose $\mu_1, \dots, \mu_n$ are measures on $\mathcal{F}$. Show that for $a_1, \dots, a_n \in [0, \infty)$, $\sum_{j=1}^n a_j \mu_j$ is a measure on $\mathcal{F}$.
+\end{problem}
+
+\begin{solution}
+Let $\nu(E) = \sum_{j=1}^n a_j \mu_j(E)$ for $E \in \mathcal{F}$. We verify the properties of a measure.
+
+\begin{enumerate}
+    \item \textbf{Non-negativity and Null Set:}
+    Since $a_j \ge 0$ and $\mu_j(E) \ge 0$, $\nu(E) \in [0, \infty]$.
+    For the empty set:
+    \[ \nu(\emptyset) = \sum_{j=1}^n a_j \mu_j(\emptyset) = \sum_{j=1}^n a_j (0) = 0 \]
+    
+    \item \textbf{Countable Additivity:}
+    Let $\{E_k\}_{k=1}^\infty$ be a sequence of pairwise disjoint sets in $\mathcal{F}$.
+    \[ \nu\left(\bigcup_{k=1}^\infty E_k\right) = \sum_{j=1}^n a_j \mu_j\left(\bigcup_{k=1}^\infty E_k\right) \]
+    Since each $\mu_j$ is a measure, $\mu_j(\bigcup_{k=1}^\infty E_k) = \sum_{k=1}^\infty \mu_j(E_k)$. Substituting this:
+    \[ = \sum_{j=1}^n a_j \left( \sum_{k=1}^\infty \mu_j(E_k) \right) \]
+    Since all terms are non-negative, we can apply Tonelli's theorem for sums (or basic properties of series with non-negative terms) to interchange the order of summation:
+    \[ = \sum_{k=1}^\infty \sum_{j=1}^n a_j \mu_j(E_k) = \sum_{k=1}^\infty \nu(E_k) \]
+\end{enumerate}
+Thus, $\nu$ is a measure on $\mathcal{F}$.
+\end{solution}
+
+\hrulefill
+
+\begin{problem}
+Let $\Omega$ be a nonempty set and let $\emptyset \neq \mathcal{F} \subseteq \mathcal{P}(\Omega)$ be a $\sigma$-algebra. Fix $E \in \mathcal{F}$ and define $\mu_E(A) = \mu(A \cap E)$ for $A \in \mathcal{F}$. Prove or disprove the following statement: $\mu_E$ is a measure on $\mathcal{F}$. (Assuming $\mu$ is a measure).
+\end{problem}
+
+\begin{solution}
+The statement is \textbf{True}. We prove $\mu_E$ is a measure.
+
+\begin{enumerate}
+    \item \textbf{Null Set:}
+    \[ \mu_E(\emptyset) = \mu(\emptyset \cap E) = \mu(\emptyset) = 0 \]
+    
+    \item \textbf{Countable Additivity:}
+    Let $\{A_n\}_{n=1}^\infty$ be a disjoint sequence in $\mathcal{F}$.
+    \[ \mu_E\left(\bigcup_{n=1}^\infty A_n\right) = \mu\left( \left(\bigcup_{n=1}^\infty A_n\right) \cap E \right) \]
+    Using the distributive law:
+    \[ = \mu\left( \bigcup_{n=1}^\infty (A_n \cap E) \right) \]
+    Since $\{A_n\}$ are disjoint, the sets $\{A_n \cap E\}$ are also pairwise disjoint. Because $\mu$ is a measure:
+    \[ = \sum_{n=1}^\infty \mu(A_n \cap E) = \sum_{n=1}^\infty \mu_E(A_n) \]
+\end{enumerate}
+Therefore, $\mu_E$ is a measure on $\mathcal{F}$.
+\end{solution}
+
+\hrulefill
+
+\begin{problem}
+Let $\Omega$ be an infinite set and let $\mathcal{A} := \{ E \subseteq \Omega : \text{either } E \text{ or } E^c \text{ is finite}\}$. Define $\mu: \mathcal{A} \to [0, \infty)$ by
+\[ \mu(E) = \begin{cases} 0 & \text{if } E \text{ is finite,} \\ 1 & \text{if } E^c \text{ is finite.} \end{cases} \]
+Prove that $\mu$ is finitely additive. Under what conditions is $\mu$ countably additive?
+\end{problem}
+
+\begin{solution}
+\textbf{Part 1: Finite Additivity}
+Let $A, B \in \mathcal{A}$ be disjoint. Since $\Omega$ is infinite, $A$ and $B$ cannot both be co-finite (otherwise $A \subseteq B^c$ implies an infinite set is a subset of a finite set).
+\begin{itemize}
+    \item \textbf{Case 1: Both finite.} $A \cup B$ is finite.
+    $\mu(A \cup B) = 0$ and $\mu(A) + \mu(B) = 0 + 0 = 0$. Holds.
+    \item \textbf{Case 2: One finite, one co-finite.} Let $A$ be finite, $B^c$ finite.
+    $(A \cup B)^c = A^c \cap B^c$. Since $B^c$ is finite, the intersection is finite. Thus $A \cup B$ is co-finite.
+    $\mu(A \cup B) = 1$ and $\mu(A) + \mu(B) = 0 + 1 = 1$. Holds.
+\end{itemize}
+Thus, $\mu$ is finitely additive.
+
+\textbf{Part 2: Conditions for Countable Additivity}
+We claim that $\mu$ is countably additive \textbf{if and only if $\Omega$ is uncountable}.
+
+\textit{Proof:}
+A measure on an algebra is countably additive if for any disjoint sequence $\{A_n\} \subseteq \mathcal{A}$ with $\bigcup A_n \in \mathcal{A}$, $\mu(\bigcup A_n) = \sum \mu(A_n)$.
+
+1. \textbf{Suppose $\Omega$ is countable (infinite).}
+Let $\Omega = \{x_1, x_2, \dots\}$. Let $A_n = \{x_n\}$. These are finite, disjoint sets in $\mathcal{A}$.
+The union is $\bigcup A_n = \Omega$. Since $\Omega^c = \emptyset$ is finite, $\Omega \in \mathcal{A}$ and $\mu(\Omega) = 1$.
+However, $\sum \mu(A_n) = \sum 0 = 0$.
+Since $1 \neq 0$, $\mu$ is not countably additive.
+
+2. \textbf{Suppose $\Omega$ is uncountable.}
+Let $\{A_n\}$ be disjoint sets in $\mathcal{A}$ such that $A = \bigcup A_n \in \mathcal{A}$.
+\begin{itemize}
+    \item If any $A_k$ is co-finite, then all other $A_j$ ($j \neq k$) must be finite (subsets of $A_k^c$). The union $A$ contains $A_k$, so $A$ is co-finite.
+    LHS: $\mu(A) = 1$. RHS: $\mu(A_k) + \sum_{j \neq k} \mu(A_j) = 1 + 0 = 1$. Holds.
+    \item If all $A_n$ are finite, then $\sum \mu(A_n) = 0$.
+    For additivity to fail, we would need $\mu(A) = 1$, i.e., $A$ is co-finite.
+    If $A$ were co-finite, then $A^c$ is finite.
+    Then $\Omega = A \cup A^c = (\bigcup A_n) \cup A^c$.
+    This implies $\Omega$ is a countable union of finite sets, which implies $\Omega$ is countable.
+    This contradicts the assumption that $\Omega$ is uncountable.
+    Thus, $A$ cannot be co-finite. $A$ must be finite (or not in $\mathcal{A}$, but we assumed $A \in \mathcal{A}$).
+    If $A$ is finite, $\mu(A) = 0$, so $0=0$. Holds.
+\end{itemize}
+Therefore, $\mu$ is countably additive if and only if $\Omega$ is uncountable.
+\end{solution}
+
+\end{document}
