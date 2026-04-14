@@ -1,0 +1,146 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+% Define custom theorem environments
+\newtheorem{intuition}{Intuition}
+\newtheorem{motivation}{Motivation}
+
+\title[Phase 3: Optimizations]{Phase 3: Variations and Optimizations}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Paper Presentation}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Phase 3}
+    \tableofcontents
+\end{frame}
+
+\section{The Practicality Gap}
+\begin{frame}{The Practicality Gap}
+    \begin{motivation}
+    We have established the mathematical engine for our Somewhat Homomorphic Encryption (SHE) scheme. However, before we can secure it or bootstrap it, we face two massive engineering realities:
+    \begin{enumerate}
+        \item \textbf{Memory Explosion:} Ciphertexts grow exponentially in physical bit-size during evaluation.
+        \item \textbf{Bandwidth Choke:} Even fresh ciphertexts are impractically large ($\tilde{\mathcal{O}}(\lambda^5)$ bits).
+    \end{enumerate}
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    To make this scheme practically viable, we must introduce two structural optimizations:
+    \begin{itemize}
+        \item \textit{In-flight:} Modular reduction during evaluation.
+        \item \textit{Post-flight:} Ciphertext compression via group exponentiation.
+    \end{itemize}
+\end{frame}
+
+\section{Optimization 1: Modular Reduction During Evaluate}
+\begin{frame}{The Size Explosion Problem}
+    Recall our encryption algorithm: $c = \left[ m + 2r + 2\sum_{i \in S} x_i \right]_{x_0}$.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Problem:}
+    During $\text{Encrypt}$, we easily keep the ciphertext size bounded to $\gamma$ bits by reducing modulo $x_0$. 
+    
+    However, during $\text{Evaluate}$, we \textbf{cannot} simply reduce modulo $x_0$ after a multiplication. 
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Why?} 
+    After one multiplication, the ciphertext squares in size, becoming vastly larger than $x_0$. A standard modulo $x_0$ reduction would subtract a massive multiple of $x_0$. Because $x_0$ contains its own noise ($r_0$), subtracting a massive multiple of $x_0$ injects a catastrophic amount of noise into the ciphertext, instantly destroying the plaintext.
+\end{frame}
+
+\begin{frame}{The Solution: A Ladder of Zeroes}
+    \textbf{The Fix:} We augment the public key with a "ladder" of increasingly massive encryptions of zero.
+    \pause
+    
+    \vspace{0.2cm}
+    For $i = 0, \dots, \gamma$, we generate new elements $x'_i$:
+    $$q'_i \leftarrow \mathbb{Z} \cap [2^{\gamma+i-1}/p, 2^{\gamma+i}/p)$$
+    $$x'_i = 2(q'_i \cdot p + r'_i)$$
+    where $r'_i$ is drawn from the standard noise distribution $(-2^\rho, 2^\rho)$.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}[The Step-Down Ladder]
+    These $x'_i$ values are astronomically large, scaling up to $2^{2\gamma}$. 
+    
+    During evaluation, when a ciphertext exceeds $2^\gamma$, we do not reduce by $x_0$. Instead, we reduce modulo the largest $x'_\gamma$, then modulo $x'_{\gamma-1}$, and so on, stepping down the ladder until the ciphertext is back to $\gamma$ bits.
+    \end{intuition}
+    \pause
+    
+    \textbf{Result:} Because we only ever subtract small multiples of these $x'_i$ elements at each step, the accumulated error remains strictly bounded!
+\end{frame}
+
+\section{Optimization 2: Ciphertext Compression}
+\begin{frame}{The Bandwidth Problem}
+    Even with the ladder optimization keeping ciphertexts at $\gamma$ bits, $\gamma$ is still massively large—specifically $\tilde{\mathcal{O}}(\lambda^5)$ bits. Transmitting this over a network is brutally inefficient.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Goal:} Compress the final output ciphertext to the size of a standard RSA modulus \textit{after} the cloud server has finished all homomorphic evaluations.
+\end{frame}
+
+\begin{frame}{Compression via Group Exponentiation}
+    \textbf{The Mechanism:}
+    We supplement the public key with the description of a cyclic group $G = \langle g \rangle$ whose order is a multiple of the secret key $p$.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Compression Step:}
+    Instead of sending the massive integer $c$ back to the user, the server computes and transmits:
+    $$c^* = g^c \pmod N$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Decryption Step:}
+    Because $c^*$ is an element of the group, the user decrypts by computing the Discrete Logarithm (DL):
+    $$m = \left( DL_g(c^*) \pmod p \right) \pmod 2$$
+\end{frame}
+
+\begin{frame}{Trade-offs of Compression}
+    How is computing the Discrete Logarithm efficient for the user?
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Secret Key Modification:}
+    We must generate the secret key $p$ as a \textbf{smooth} number (a product of many small distinct primes). This allows the user to efficiently compute the discrete log using the Pohlig-Hellman algorithm or baby-step giant-step method.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{block}{The Ultimate Trade-off}
+    \begin{itemize}
+        \item \textbf{Pros:} The ciphertext is compressed from $\tilde{\mathcal{O}}(\lambda^5)$ bits down to the size of an RSA modulus ($\sim 2048$ bits).
+        \item \textbf{Cons:} The compressed ciphertext $c^*$ resides in the group $G$. Because we do not have an FHE scheme over this group, \textbf{we completely lose all homomorphic properties.} 
+    \end{itemize}
+    \end{block}
+    \pause
+    
+    \vspace{0.2cm}
+    \textit{Conclusion:} This is strictly a post-flight optimization, applied only when computation is complete and data is ready for transit.
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+        
+        \bibitem{Cachin99}
+        C. Cachin, S. Micali, and M. Stadler.
+        \textit{Computationally private information retrieval with polylogarithmic communication}.
+        EUROCRYPT, 1999. (For the $\phi$-hiding assumption).
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,100 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{letterpaper, margin=1in}
+
+\title{Speaker Notes: Bootstrapping -- A Rigorous Mathematical Formulation}
+\author{Nirav Bhattad}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Pacing Guide (Target: 5 Minutes)}
+\textit{This script is designed for a dense, rigorous 5-minute delivery. The key to pacing here is to move deliberately through the vectorization step, as it is the conceptual bridge that makes the final transformation click for the audience. Use strategic pauses after defining the Bootstrappable condition and after the final identity.}
+
+\hrulefill
+
+\section*{Step 1: Formalizing the Noise Space and the Depth Limit (0:00 - 1:00)}
+
+\textbf{[Opening Cue]} \\
+"To rigorously understand bootstrapping, we must strip away all analogies and look strictly at the algebraic invariants of our Somewhat Homomorphic Encryption scheme, which we denote as $\mathcal{E}$."
+
+\textbf{[Point to or present the invariant equation]} \\
+"For a secret key $p$, which is an $\eta$-bit odd integer, a ciphertext $c \in \mathbb{Z}$ encrypting a bit $m \in \{0, 1\}$ has the structural invariant:
+$$c = p \cdot q + 2r + m$$
+where $r$ is our noise term. 
+
+We formally define the \textbf{noise magnitude} of a ciphertext as $N(c) = |2r + m|$. 
+
+The decryption function is defined as:
+$$\text{Decrypt}_{p}(c) = (c \pmod p) \pmod 2$$
+
+\textbf{[Emphasize the constraint]} \\
+"For decryption to be correct, the noise magnitude must satisfy the strict inequality:
+$$N(c) < \frac{p}{2}$$
+
+Now, let $\mathcal{C}_{\mathcal{E}}$ be the set of all permitted boolean circuits. A circuit $C \in \mathcal{C}_{\mathcal{E}}$ if and only if evaluating it homomorphically yields a ciphertext $c_{out}$ such that $N(c_{out}) < p/2$. Because multiplication squares the noise magnitude---that is, $N(c_1 \cdot c_2) \approx 2 \cdot N(c_1) \cdot N(c_2)$---the degree of the multivariate polynomial representing any circuit in $\mathcal{C}_{\mathcal{E}}$ is strictly bounded. Thus, our scheme $\mathcal{E}$ has a hard multiplicative depth limit."
+
+\section*{Step 2: Vectorizing the Inputs for Homomorphic Evaluation (1:00 - 2:00)}
+
+\textbf{[Transition]} \\
+"To understand bootstrapping, we must precisely define how the $\text{Evaluate}$ algorithm operates on data types. $\text{Evaluate}$ does not take integers; it takes a boolean circuit and vectors of encrypted bits."
+
+\textbf{[Walk through the vectorization]} \\
+"Let $x$ be an integer represented by a bit-vector $\vec{x} = \langle x_1, x_2, \dots, x_k \rangle$. We define the bitwise encryption of $x$ under a public key $pk$ as:
+$$\text{Enc}_{pk}(\vec{x}) = \langle \text{Encrypt}(pk, x_1), \text{Encrypt}(pk, x_2), \dots, \text{Encrypt}(pk, x_k) \rangle$$
+
+If $f(\vec{x})$ is a boolean function computed by a circuit $C_f$, the fundamental homomorphism guarantees:
+$$\text{Evaluate}(pk, C_f, \text{Enc}_{pk}(\vec{x})) = \text{Encrypt}(pk, f(\vec{x}))$$
+Keep this fundamental identity in mind."
+
+\section*{Step 3 \& 4: The Bootstrappable Condition (2:00 - 3:00)}
+
+\textbf{[Define the Augmented Circuit]} \\
+"Bootstrapping requires evaluating the decryption algorithm itself homomorphically. The decryption function $m = \text{Decrypt}_{p}(c)$ takes two inputs: the secret key $p$ and the ciphertext $c$. We represent this function as a boolean circuit $C_{Dec}$.
+
+To achieve arbitrary computation, we do not just need to decrypt; we must perform one operational gate---like a NAND gate, or Addition/Multiplication in our integer basis. We define the \textbf{Augmented Decryption Circuits}, denoted $D_{\mathcal{E}}$, as the set of circuits consisting of two sub-circuits $C_{Dec}$ followed by a single gate."
+
+\textbf{[State the Bootstrappable Condition]} \\
+"We can now state the strict mathematical condition for a scheme to be bootstrappable:
+$$D_{\mathcal{E}} \subseteq \mathcal{C}_{\mathcal{E}}$$
+This means the polynomial degree of the augmented decryption circuit $D_{\mathcal{E}}$ must be strictly less than or equal to the maximum polynomial degree bounded by the noise limit of the SHE scheme."
+
+\section*{Step 5: Gentry's Bootstrapping Transformation (3:00 - 4:15)}
+
+\textbf{[Set the stage for the transformation]} \\
+"Assume this condition holds. We have a ciphertext $c_1$ encrypting a message $m$ under keypair $(sk_1, pk_1)$. Assume $N(c_1)$ is perilously close to $p/2$. We execute the following sequence to 'refresh' the ciphertext."
+
+\textbf{[Pace through the 5 steps clearly]} \\
+"One: Generate a secondary keypair $(sk_2, pk_2)$.
+
+Two: Bitwise Encryption of the Ciphertext. Let $\vec{c}_1$ be the bit-vector representation of $c_1$. We encrypt each bit under the \textit{new} public key: $\overline{c}_1 = \text{Enc}_{pk_2}(\vec{c}_1)$.
+
+Three: Bitwise Encryption of the Secret Key. Let $\vec{s}_1$ be the bit-vector of $sk_1$. We encrypt each bit under the \textit{new} public key: $\overline{s}_1 = \text{Enc}_{pk_2}(\vec{s}_1)$. This is published as the bootstrapping key.
+
+Four: Homomorphic Evaluation. We run the $\text{Evaluate}$ algorithm using $pk_2$, applying the boolean circuit $C_{Dec}$ to our encrypted vectors:
+$$c_{new} = \text{Evaluate}(pk_2, C_{Dec}, \overline{s}_1, \overline{c}_1)$$
+
+Five: The Resulting Identity. By the fundamental homomorphism we defined in Step 2, applying $C_{Dec}$ inside the $\text{Evaluate}$ function yields the encryption of the output of $C_{Dec}$:
+$$c_{new} = \text{Encrypt}(pk_2, C_{Dec}(\vec{s}_1, \vec{c}_1))$$
+
+Because $C_{Dec}(\vec{s}_1, \vec{c}_1)$ is literally the decryption of $c_1$ under $sk_1$, the output of the circuit evaluates exactly to the original message bit $m$. Therefore:
+$$c_{new} = \text{Encrypt}(pk_2, m)$$"
+
+\section*{The Mathematical Conclusion (4:15 - 5:00)}
+
+\textbf{[Deliver the punchline]} \\
+"Look closely at the noise magnitude of the newly generated ciphertext $c_{new}$. 
+
+$N(c_{new})$ is a function \textbf{strictly} of the polynomial degree of the circuit $C_{Dec}$ evaluated over fresh ciphertexts encrypted under $pk_2$. 
+
+The original, massive noise $N(c_1)$ was merely processed as input data---bits of zeroes and ones---inside the boolean circuit. The magnitude of $N(c_1)$ has absolutely zero algebraic relation to the magnitude of $N(c_{new})$. 
+
+Because $D_{\mathcal{E}} \subseteq \mathcal{C}_{\mathcal{E}}$, we are mathematically guaranteed that $N(c_{new}) < p_2/2$. We have successfully output a fresh encryption of $m$ with a reset noise budget, allowing us to evaluate the next gate. By repeating this process recursively, we achieve Fully Homomorphic Encryption."
+
+\end{document}

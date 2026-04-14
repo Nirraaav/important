@@ -1,0 +1,1239 @@
+\documentclass[10pt]{beamer}
+
+% Theme and Color setup
+\usetheme{Madrid}
+\usecolortheme{beaver}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+
+% Force Theorem blocks to be red
+\definecolor{darkred}{RGB}{160, 0, 0}
+\setbeamercolor{block title}{bg=darkred, fg=white}
+\setbeamercolor{block body}{bg=red!10, fg=black}
+
+% Packages
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{lmodern}
+\usefonttheme{professionalfonts}
+% \usepackage{fontspec}
+% \setmainfont{TeX Gyre Heros} % or another modern font
+\usetikzlibrary{arrows.meta, positioning}
+
+\newtheorem{intuition}{Intuition}
+\newtheorem{motivation}{Motivation}
+
+\title[Fully Homomorphic Encryption over the Integers]{Fully Homomorphic Encryption over the Integers}
+\subtitle{Paper by van Dijk, Gentry, Halevi, and Vaikuntanathan (2010)}
+\author[Nirav, Kunal]{Nirav Bhattad (23B3307), Kunal Chaudhari (22B1060)}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+    \tableofcontents[hideallsubsections]
+\end{frame}
+
+\section{The FHE Dream and The Bootstrapping Blueprint}
+
+\subsection{Motivation \& The Integer Paradigm}
+
+\begin{frame}{Motivation: The Cloud Computing Conundrum}
+    \begin{motivation}
+    We possess robust cryptographic solutions for data \textbf{in transit} (TLS/SSL) and data \textbf{at rest} (AES). However, computing on that data traditionally requires decryption, creating a massive vulnerability when outsourcing to untrusted cloud servers.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Fully Homomorphic Encryption (FHE) Goal:}
+    Allow an untrusted party to take encrypted inputs, perform arbitrary, unbounded computations on them, and return an encrypted result. 
+    \pause
+    
+    \vspace{0.3cm}
+    When decrypted, this result must match exactly what the data owner would have obtained by computing on the plaintext locally.
+\end{frame}
+
+\begin{frame}{The Quest for the Simplest Secure Scheme}
+    \textit{``What is the simplest encryption scheme for which one can hope to achieve security?"}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Caesar Cipher Analogy:}
+    \begin{itemize}
+        \item Shift `A' by 3 and `B' by 3. You can trivially add those shifts together.
+        \item It is perfectly (and ironically) homomorphic under addition. 
+        \item \textbf{Fatal Flaw:} It is completely insecure, because the ciphertexts are just shifted versions of the plaintexts, making them easily breakable by frequency analysis.
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{The Paradigm Shift (2009 vs. 2010):}
+    \begin{itemize}
+        \item Craig Gentry's breakthrough 2009 FHE scheme utilized ideal lattices over polynomial rings -- using conceptually and mathematically heavy machinery like Algebraic Number Theory and Algebraic Geometry.
+        \pause
+        \item \textbf{This Paper:} Asks if we can achieve the exact same FHE blueprint using only elementary addition and multiplication over the integers. 
+    \end{itemize}
+\end{frame}
+
+\subsection{Formalizing Fully Homomorphic Encryption}
+
+\begin{frame}{Formalizing the FHE Dream}
+    To prove a scheme works, we must rigorously define it. A homomorphic public key encryption scheme $\mathcal{E}$ consists of four Probabilistic Polynomial-Time (PPT) algorithms:
+    
+    \pause
+    $$\mathcal{E} = (\text{KeyGen}, \text{Encrypt}, \text{Decrypt}, \textbf{Evaluate})$$
+    
+    \vspace{0.3cm}
+    \textbf{The Evaluate Algorithm:}
+    Takes as input a public key $pk$, a boolean circuit $C$, and a tuple of ciphertexts $\vec{c}=\langle c_{1},...,c_{t}\rangle$ (corresponding to the $t$ input bits of $C$), and outputs a new evaluated ciphertext $c_{\text{out}}$.
+\end{frame}
+
+\begin{frame}{Correctness and Homomorphism}
+    \begin{definition}[Correct Homomorphic Decryption]
+    The scheme $\mathcal{E}$ is correct for a given $t$-input circuit $C$ if, for any key-pair $(sk,pk)\leftarrow \text{KeyGen}(\lambda)$, any plaintexts $m_{1},...,m_{t}\in\{0,1\}$, and any ciphertexts $c_{i}\leftarrow \text{Encrypt}(pk,m_{i})$, the following holds with overwhelming probability:
+    $$\text{Decrypt}(sk,\text{Evaluate}(pk,C,\vec{c}))=C(m_{1},...,m_{t})$$
+    \end{definition}
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Fully Homomorphic Encryption]
+    The scheme $\mathcal{E}$ is homomorphic for a class $\mathcal{C}$ of circuits if it is correct for all circuits $C\in\mathcal{C}$. The scheme $\mathcal{E}$ is \textbf{fully homomorphic} if it is correct for \textit{all} boolean circuits (i.e., circuits of arbitrary depth and size).
+    \end{definition}
+\end{frame}
+
+\begin{frame}{The ``Trivial" Solution and Circuit Privacy}
+    \textbf{Loophole:} Can we trivially satisfy the definition of FHE right now? 
+    \pause
+    
+    \textit{Yes.} An untrusted server could just take the circuit $C$, concatenate it to the raw input ciphertexts, and send it back. The user decrypts the inputs, reads $C$, and computes it locally.
+    \pause
+    
+    % \vspace{0.3cm}
+    To ban this useless scheme, cryptography enforces two strict properties. The first is \textbf{Circuit Privacy}.
+    \pause
+
+    \begin{definition}[Circuit Privacy]
+    The ciphertext output by the $\text{Evaluate}$ algorithm must not reveal anything about the circuit $C$ that was evaluated, beyond the final output value itself -- even to the data owner who holds the secret key.
+    \end{definition}
+    \pause
+
+    % \begin{intuition}
+    % If the server just attaches $C$ to the ciphertext, privacy is completely violated. In our integer scheme, even the bit-length of the output ciphertext could leak how many multiplication gates were evaluated. To achieve circuit privacy, we must "wipe the history" of the computation by re-randomizing the final ciphertext -- specifically by adding a fresh ``high noise" encryption of zero before sending it back.
+    % \end{intuition}
+\end{frame}
+
+\begin{frame}{The Compactness Constraint}
+    The second (and far more difficult) property that rules out the trivial solution is \textbf{Compactness}.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Goal:} We must physically prevent the server from passing the computational burden back to the user. The server must be forced to actually do the math and compress the answer.
+    \pause
+
+    \begin{definition}[Compactness]
+    A homomorphic scheme $\mathcal{E}$ is compact if there exists a fixed polynomial bound $b(\lambda)$ such that the size of the ciphertext output by $\text{Evaluate}(pk, C, \vec{c})$ is strictly bounded by $b(\lambda)$ bits, \textbf{independently of the size or depth of $C$}.
+    \end{definition}
+    \pause
+
+    \begin{intuition}[The Root of the FHE Challenge]
+    Compactness is the true bottleneck of FHE. We cannot let the ciphertext grow proportionally to the circuit depth. We must compress the output so the user experiences $\mathcal{O}(1)$ decryption time, regardless of whether the cloud server evaluated a 10-gate circuit or a 10-billion-gate circuit. This strict bounding is exactly what forces us to manage noise, and ultimately, what forces us to use Bootstrapping.
+    \end{intuition}
+\end{frame}
+
+\subsection{The Bootstrapping Blueprint}
+
+\begin{frame}{The Crisis of Noise}
+    \begin{intuition}[The Noise Bottleneck]
+    In all known FHE schemes, ciphertexts contain ``noise" to ensure security. 
+    \begin{itemize}
+        \item Homomorphic addition adds the noise.
+        \item Homomorphic multiplication \textbf{multiplies} the noise.
+    \end{itemize}
+    Because multiplication squares the noise, evaluating a deep circuit causes the noise to explode past the decryption boundary, permanently destroying the plaintext.
+    \end{intuition}
+    \pause
+    
+    \vspace{0.3cm}
+    This limits us to a \textit{Somewhat} Homomorphic Encryption (SHE) scheme. How do we compute infinitely if noise acts as a strict depth limit?
+\end{frame}
+
+\begin{frame}{Defining Bootstrappability}
+    The answer is Gentry's Bootstrapping Blueprint. First, we define a specific class of circuits.
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Augmented Decryption Circuits]
+    Let $\mathcal{E}$ be an encryption scheme where decryption is implemented by a boolean circuit. The set of augmented decryption circuits, $D_{\mathcal{E}}$, consists of two circuits: 
+    \begin{enumerate}
+        \item Decrypt two ciphertexts and ADD the results.
+        \item Decrypt two ciphertexts and MULTIPLY the results.
+    \end{enumerate}
+    \end{definition}
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Bootstrappable Encryption]
+    Let $\mathcal{C}_{\mathcal{E}}$ be the set of permitted circuits a scheme can evaluate before noise exceeds the bounds. A scheme is \textbf{bootstrappable} if it can evaluate its own augmented decryption circuits:
+    $$D_{\mathcal{E}} \subseteq \mathcal{C}_{\mathcal{E}}$$
+    \end{definition}
+\end{frame}
+
+\begin{frame}{Gentry's Bootstrapping Theorem}
+    \begin{theorem}[Gentry's Transformation]
+    There is an efficient transformation that, given a description of a bootstrappable scheme $\mathcal{E}$, outputs a description of a \textbf{Fully Homomorphic} encryption scheme capable of evaluating circuits of any depth.
+    \end{theorem}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}[How Bootstrapping ``Refreshes" Ciphertexts]
+    \begin{enumerate}
+        \item Take a ciphertext $c$ whose noise is dangerously high.
+        \item Encrypt $c$ \textit{again} under a new public key.
+        \item Provide the server with an \textit{encrypted} secret key.
+        \item The server homomorphically evaluates the decryption algorithm on the inner ciphertext.
+    \end{enumerate}
+    \pause
+    \textbf{Result:} Because the decryption circuit is evaluated homomorphically, the output is a fresh ciphertext encrypting the exact same message, but with a fixed, smaller noise level determined solely by the depth of the decryption circuit itself!
+    \end{intuition}
+\end{frame}
+
+\section{The Integer Engine and The Noise Crisis}
+\subsection{The Symmetric \& Public-Key SHE Schemes}
+
+\begin{frame}{Building the Engine: The Symmetric ``Toy" Scheme}
+    Before we look at the complex public-key version, we start with a beautifully simple symmetric-key foundation.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Parameters:} Let $\eta$ be the bit-length of the secret key, and $\rho$ be the bit-length of the noise.
+    \pause
+    
+    \begin{block}{The Symmetric Algorithms}
+    \begin{itemize}
+        \item \textbf{KeyGen:} The secret key $p$ is a randomly chosen odd integer $p \in [2^{\eta-1}, 2^{\eta})$.
+        \item \textbf{Encrypt($p, m$):} To encrypt a bit $m \in \{0,1\}$, choose a large random integer $q$ and a small random noise integer $r$ (where $|r| < 2^{\rho}$). 
+        $$c = p \cdot q + 2r + m$$
+        \item \textbf{Decrypt($p, c$):} Output $m' = (c \pmod p) \pmod 2$.
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Intuition: Why Symmetric Decryption Works}
+    Let's break down the decryption equation: $m' = (c \pmod p) \pmod 2$.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{enumerate}
+        \item Substitute $c$: $(p \cdot q + 2r + m \pmod p)$
+        \pause
+        \item Because $p \cdot q$ is an exact multiple of $p$, it vanishes perfectly. We are left with $(2r + m \pmod p)$.
+        \pause
+        \item \textbf{The Critical Condition:} The modulo $p$ operation only leaves $2r+m$ unchanged if its absolute value is strictly less than half the modulus. We strictly require:
+        $$|2r + m| < p/2$$
+        \pause
+        \item Assuming the noise is small enough, we take $(2r + m) \pmod 2$. The $2r$ is even, so it vanishes, leaving exactly $m$.
+    \end{enumerate}
+    \pause
+    
+    \begin{block}{Motivation}
+    To anyone without $p$, the ciphertext $c$ just looks like a massive, random integer. But algebraically, it is a point ``tethered" to a multiple of $p$ by a short, noisy string ($2r+m$).
+    \end{block}
+\end{frame}
+
+\begin{frame}{Symmetric Decryption: A Visualizable Example}
+    Let's put numbers to the theory.
+    
+    \vspace{0.2cm}
+    \textbf{Setup:}
+    \begin{itemize}
+        \item Secret Key $p = 31$
+        \item Message bit $m = 1$
+    \end{itemize}
+    \pause
+    
+    \textbf{Encrypt:}
+    Choose a random $q = 5$ and a small noise $r = 2$.
+    $$c = (31 \cdot 5) + 2(2) + 1 = 155 + 4 + 1 = 160$$
+    The ciphertext is $160$.
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{Decrypt:}
+    $$160 \pmod{31} = 5$$
+    $$5 \pmod 2 = 1$$
+    We successfully recovered $m = 1$. The noise ($2r+m = 5$) was safely smaller than $p/2$ ($15.5$).
+\end{frame}
+
+\begin{frame}{Transitioning to Public-Key}
+    A true FHE scheme requires public-key infrastructure. We achieve this by publishing a massive list of ``encryptions of zero."
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{New Parameters (based on security parameter $\lambda$):}
+    \begin{itemize}
+        \item $\gamma$: Bit-length of the integers in the public key.
+        \item $\tau$: Number of integers in the public key.
+        \item $\rho'$: Secondary noise parameter for encryption $\rho' = \rho + \omega(\log \lambda)$.
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \begin{block}{The Noise Distribution $\mathcal{D}_{\gamma,\rho}(p)$}
+    To generate an ``encryption of zero", choose $q \leftarrow \mathbb{Z} \cap [0, 2^\gamma/p)$ and $r \leftarrow \mathbb{Z} \cap (-2^\rho, 2^\rho)$. 
+    Output $x = pq + r$.
+    \end{block}
+\end{frame}
+
+\begin{frame}{The Public-Key Algorithms}
+    \textbf{KeyGen:}
+    \begin{itemize}
+        \item Sample $\tau + 1$ integers $x_0, x_1, \dots, x_\tau$ from $\mathcal{D}_{\gamma,\rho}(p)$. 
+        \item Relabel so $x_0$ is the largest. Restart unless $x_0$ is odd and its noise $r_p(x_0)$ is even.
+        \item Public key $pk = \langle x_0, x_1, \dots, x_\tau \rangle$.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Encrypt($pk, m$):}
+    Choose a random subset $S \subseteq \{1, 2, \dots, \tau\}$ and a noise integer $r \in (-2^{\rho'}, 2^{\rho'})$.
+    $$c = \left[ m + 2r + 2\sum_{i \in S} x_i \right]_{x_0}$$
+    \pause
+    
+    \begin{block}{Intuition}
+    Every $x_i$ is effectively $0$ (plus noise). Summing a random subset of $x_i$ computes $0+0+0\dots$, creating a fresh, randomized encryption of zero. We multiply by 2 to keep the noise even, add our own fresh noise $2r$, and add $m$. The final modulo $x_0$ prevents the physical bit-size from growing infinitely large.
+    \end{block}
+\end{frame}
+
+\subsection{Proof of Correctness}
+
+\begin{frame}{The Structure of a Fresh Ciphertext}
+    To prove this scheme is homomorphic, we first mathematically prove that a fresh public-key ciphertext has the exact same structure as our symmetric toy scheme.
+    \pause
+    
+    \begin{lemma}
+    Let $c \leftarrow \text{Encrypt}(pk, m)$. Then, $c = a\cdot p + (2b + m)$ for some integers $a$ and $b$ where the noise is bounded by $|2b+m| \le \tau 2^{\rho+2}$.
+    \end{lemma}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Proof Sketch:}
+    \begin{itemize}
+        \item By definition, $c = m + 2r + 2\sum_{i \in S} x_i + k \cdot x_0$.
+        \item We know every $x_i = q_i p + r_i$. Substitute this in:
+        $$c = p \cdot \left(kq_0 + 2\sum_{i \in S} q_i\right) + \left(m + 2r + 2k \cdot r_0 + 2\sum_{i \in S} r_i\right)$$
+        \item The first term is a multiple of $p$ (our $a \cdot p$). The second term is our accumulated noise ($2b+m$). Its parity is $m$, and its magnitude is bounded.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Homomorphic Evaluation: Addition}
+    Let the Evaluate algorithm simply be integer addition and multiplication. 
+    Let $c_1 = q_1 p + 2r_1 + m_1$ and $c_2 = q_2 p + 2r_2 + m_2$.
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Homomorphic Addition:}
+    $$c_1 + c_2 = p(q_1 + q_2) + 2(r_1 + r_2) + (m_1 + m_2)$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Observation:}
+    The structural format $a\cdot p + \text{noise}$ is perfectly preserved! We have a new multiple of $p$, plus $2 \times (\text{new noise})$, plus the sum of the messages. 
+    
+    \vspace{0.2cm}
+    \textbf{Crucially:} The noise grows \textbf{linearly} ($r_1 + r_2$).
+\end{frame}
+
+\begin{frame}{Homomorphic Evaluation: Multiplication}
+    Now, let us multiply the ciphertexts:
+    $$c_1 \cdot c_2 = (q_1 p + 2r_1 + m_1)(q_2 p + 2r_2 + m_2)$$
+    \pause
+    
+    Expanding this algebraically yields:
+    $$c_1 \cdot c_2 = p \big( p \cdot q_1 q_2 + q_1(2r_2 + m_2) + q_2(2r_1 + m_1) \big)$$
+    $$+ \ 2 \big( 2r_1 r_2 + r_1 m_2 + r_2 m_1 \big) + m_1 m_2$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Observation:}
+    The structure is still preserved. We have a massive multiple of $p$ (first term), plus $2 \times (\text{mixed noise})$, plus the product of the messages $m_1 m_2$.
+    
+    \vspace{0.2cm}
+    \textbf{The Crisis:} Look at the dominant noise term: $\mathbf{2r_1 r_2}$. When we multiply ciphertexts, the noise does not add -- it \textbf{multiplies}.
+\end{frame}
+
+\subsection{The Multiplicative Bottleneck}
+
+\begin{frame}{The Decryption Constraint \& The Noise Crisis}
+    \textbf{Constraint:} 
+    Recall our strict rule for correct decryption. The modulo $p$ operation $(c \pmod p)$ will completely destroy the plaintext unless the absolute value of the total accumulated noise is strictly less than $p/2$.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{block}{The Crisis of the Square}
+    Because multiplication squares the magnitude of the noise, the noise bit-length doubles with every sequential multiplication. It grows exponentially with the multiplicative depth of the circuit. We will rapidly hit the $p/2$ boundary.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Formalizing the Bottleneck}
+    Exactly how deep can our circuit be before the noise destroys the data?
+    \pause
+    
+    \begin{lemma}[Permitted Polynomials]
+    Let $f(x_1, \dots, x_t)$ be the multivariate polynomial computed by a circuit, and let $d$ be its degree. The scheme can correctly evaluate this polynomial as long as:
+    $$d \le \frac{\eta - 4 - \log||\vec{f}||_1}{\rho' + 2}$$
+    where $||\vec{f}||_1$ is the $l_1$ norm of the coefficient vector of $f$.
+    \end{lemma}
+    \pause
+    
+    \begin{block}{Intuition: The Noise Budget}
+    \begin{itemize}
+        \item Think of $\eta$ (the bit-size of $p$) as our total \textbf{Noise Budget}.
+        \item Think of $\rho'$ (the initial noise size) as the \textbf{cost} of one multiplication.
+        \item Therefore, the maximum multiplicative depth (degree $d$) we can handle is roughly our total budget divided by the cost per operation: $\approx \eta / \rho'$.
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Story so far}
+    \textbf{Where do we stand?}
+    \pause
+    
+    \begin{enumerate}
+        \item We have successfully built an encryption scheme that can evaluate additions and multiplications without the server knowing the underlying data.
+        \pause
+        \item However, because of the multiplicative noise bottleneck, this scheme is strictly a \textbf{Somewhat Homomorphic Encryption (SHE)} scheme.
+        \pause
+        \item If we evaluate a circuit deeper than $d \approx \eta / \rho'$, the noise wraps around the modulus $p$, and the data is lost forever.
+    \end{enumerate}
+    \pause
+    
+    \vspace{0.5cm}
+    \begin{center}
+        \textit{To achieve our dream of infinite FHE computation, we must find a way to evaluate our own decryption circuit within this strict noise budget. This leads us to the next part - the reduction of the hardness of the problem to a known hard problem, and the squashing of the decryption circuit.}
+    \end{center}
+\end{frame}
+
+% \section{Variations and Optimizations}
+
+% \subsection{The Practicality Gap}
+% \begin{frame}{The Practicality Gap}
+%     \begin{motivation}
+%     We have established the mathematical engine for our Somewhat Homomorphic Encryption (SHE) scheme. However, before we can secure it or bootstrap it, we face two massive engineering realities:
+%     \begin{enumerate}
+%         \item \textbf{Memory Explosion:} Ciphertexts grow exponentially in physical bit-size during evaluation.
+%         \item \textbf{Bandwidth Choke:} Even fresh ciphertexts are impractically large ($\tilde{\mathcal{O}}(\lambda^5)$ bits).
+%     \end{enumerate}
+%     \end{motivation}
+%     \pause
+    
+%     \vspace{0.3cm}
+%     To make this scheme practically viable, we must introduce two structural optimizations:
+%     \begin{itemize}
+%         \item \textit{In-flight:} Modular reduction during evaluation.
+%         \item \textit{Post-flight:} Ciphertext compression via group exponentiation.
+%     \end{itemize}
+% \end{frame}
+
+% \subsection{Optimization 1: Modular Reduction During Evaluate}
+% \begin{frame}{The Size Explosion Problem}
+%     Recall our encryption algorithm: $c = \left[ m + 2r + 2\sum_{i \in S} x_i \right]_{x_0}$.
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{The Problem:}
+%     During $\text{Encrypt}$, we easily keep the ciphertext size bounded to $\gamma$ bits by reducing modulo $x_0$. 
+    
+%     However, during $\text{Evaluate}$, we \textbf{cannot} simply reduce modulo $x_0$ after a multiplication. 
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{Why?} 
+%     After one multiplication, the ciphertext squares in size, becoming vastly larger than $x_0$. A standard modulo $x_0$ reduction would subtract a massive multiple of $x_0$. Because $x_0$ contains its own noise ($r_0$), subtracting a massive multiple of $x_0$ injects a catastrophic amount of noise into the ciphertext, instantly destroying the plaintext.
+% \end{frame}
+
+% \begin{frame}{The Solution: A Ladder of Zeroes}
+%     \textbf{The Fix:} We augment the public key with a "ladder" of increasingly massive encryptions of zero.
+%     \pause
+    
+%     \vspace{0.2cm}
+%     For $i = 0, \dots, \gamma$, we generate new elements $x'_i$:
+%     $$q'_i \leftarrow \mathbb{Z} \cap [2^{\gamma+i-1}/p, 2^{\gamma+i}/p)$$
+%     $$x'_i = 2(q'_i \cdot p + r'_i)$$
+%     where $r'_i$ is drawn from the standard noise distribution $(-2^\rho, 2^\rho)$.
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \begin{intuition}[The Step-Down Ladder]
+%     These $x'_i$ values are astronomically large, scaling up to $2^{2\gamma}$. 
+    
+%     During evaluation, when a ciphertext exceeds $2^\gamma$, we do not reduce by $x_0$. Instead, we reduce modulo the largest $x'_\gamma$, then modulo $x'_{\gamma-1}$, and so on, stepping down the ladder until the ciphertext is back to $\gamma$ bits.
+%     \end{intuition}
+%     \pause
+    
+%     \textbf{Result:} Because we only ever subtract small multiples of these $x'_i$ elements at each step, the accumulated error remains strictly bounded!
+% \end{frame}
+
+% \subsection{Optimization 2: Ciphertext Compression}
+% \begin{frame}{The Bandwidth Problem}
+%     Even with the ladder optimization keeping ciphertexts at $\gamma$ bits, $\gamma$ is still massively large -- specifically $\tilde{\mathcal{O}}(\lambda^5)$ bits. Transmitting this over a network is brutally inefficient.
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{The Goal:} Compress the final output ciphertext to the size of a standard RSA modulus \textit{after} the cloud server has finished all homomorphic evaluations.
+% \end{frame}
+
+% \begin{frame}{Compression via Group Exponentiation}
+%     \textbf{The Mechanism:}
+%     We supplement the public key with the description of a cyclic group $G = \langle g \rangle$ whose order is a multiple of the secret key $p$.
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{The Compression Step:}
+%     Instead of sending the massive integer $c$ back to the user, the server computes and transmits:
+%     $$c^* = g^c \pmod N$$
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{The Decryption Step:}
+%     Because $c^*$ is an element of the group, the user decrypts by computing the Discrete Logarithm (DL):
+%     $$m = \left( DL_g(c^*) \pmod p \right) \pmod 2$$
+% \end{frame}
+
+% \begin{frame}{Trade-offs of Compression}
+%     How is computing the Discrete Logarithm efficient for the user?
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \textbf{The Secret Key Modification:}
+%     We must generate the secret key $p$ as a \textbf{smooth} number (a product of many small distinct primes). This allows the user to efficiently compute the discrete log using the Pohlig-Hellman algorithm or baby-step giant-step method.
+%     \pause
+    
+%     \vspace{0.3cm}
+%     \begin{block}{The Ultimate Trade-off}
+%     \begin{itemize}
+%         \item \textbf{Pros:} The ciphertext is compressed from $\tilde{\mathcal{O}}(\lambda^5)$ bits down to the size of an RSA modulus ($\sim 2048$ bits).
+%         \item \textbf{Cons:} The compressed ciphertext $c^*$ resides in the group $G$. Because we do not have an FHE scheme over this group, \textbf{we completely lose all homomorphic properties.} 
+%     \end{itemize}
+%     \end{block}
+%     \pause
+    
+%     \vspace{0.2cm}
+%     \textit{Conclusion:} This is strictly a post-flight optimization, applied only when computation is complete and data is ready for transit.
+% \end{frame}
+
+\section{Security Reduction and Known Attacks}
+
+\subsection{The Approximate-GCD Problem}
+
+\begin{frame}{The Need for Provable Security}
+    \begin{motivation}
+    We have established a working mathematical engine, but in modern cryptography, we do not simply \textit{guess} that a scheme is secure. We must show that breaking the semantic security of our encryption is mathematically equivalent to solving a known, well-studied hard problem.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    For RSA, that problem is integer factorization. For Gentry's 2009 FHE, it is finding short vectors in ideal lattices.
+    \pause
+    
+    \vspace{0.3cm}
+    For our integer-based scheme, the foundation is the \textbf{Approximate-GCD Problem}.
+\end{frame}
+
+\begin{frame}{Defining Approximate-GCD}
+    Recall our noise distribution $\mathcal{D}_{\gamma,\rho}(p)$, which outputs integers of the form $x = pq + r$, where $x$ is roughly $\gamma$ bits long, and the noise $r$ is bounded by $2^\rho$.
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Approximate Integer Greatest Common Divisor]
+    The $(\rho, \eta, \gamma)$-approximate-gcd problem is: given polynomially many samples $x_0, x_1, \dots, x_\tau$ drawn from $\mathcal{D}_{\gamma,\rho}(p)$ for a randomly chosen $\eta$-bit odd integer $p$, output the hidden integer $p$.
+    \end{definition}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}
+    If the noise $r=0$, the problem is trivial. You are given exact multiples of $p$, and a single run of the 2,000-year-old Euclidean algorithm computes $\gcd(x_1, x_2) = p$ instantly. The addition of the noise term $r$ is the sole cryptographic barrier.
+    \end{intuition}
+\end{frame}
+
+% \section{The Security Reduction (High Level)}
+
+% \begin{frame}{The Search-to-Decision Reduction}
+%     The authors provide a formal reduction proving that if you can break the scheme, you can solve Approximate-GCD.
+%     \pause
+    
+%     \vspace{0.2cm}
+%     \textbf{The Blueprint of the Reduction:}
+%     \begin{enumerate}
+%         \item \textbf{The Oracle:} Suppose an attacker $\mathcal{A}$ has a non-negligible advantage in predicting the plaintext bit of a ciphertext.
+%         \item \textbf{Extracting the Parity:} The authors prove that $\mathcal{A}$ can be mathematically manipulated into acting as a reliable "Oracle" that outputs the Least Significant Bit (LSB) of the quotient $q_p(z)$ for any noisy integer $z$. (The Leftover Hash Lemma ensures the simulated ciphertexts fed to $\mathcal{A}$ are statistically indistinguishable from real ones).
+%         \pause
+%         \item \textbf{Binary GCD:} We plug this Oracle into a modified Binary-GCD algorithm. By iteratively asking the Oracle for parity bits, we can systematically peel away the noise terms from our samples without knowing $p$.
+%         \item \textbf{Extraction:} After $\mathcal{O}(\gamma)$ iterations, the noise is stripped, and the exact secret key $p$ is revealed.
+%     \end{enumerate}
+% \end{frame}
+
+\subsection{The Security Reduction (Outline)}
+
+\begin{frame}{The Search-to-Decision Reduction}
+    \begin{motivation}
+    We must mathematically prove that breaking our scheme is equivalent to solving the Approximate-GCD problem. We do this via a ``Search-to-Decision" reduction.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{theorem}
+    Any attack $\mathcal{A}$ with advantage $\epsilon$ on the semantic security of the encryption scheme can be converted into an algorithm $\mathcal{B}$ for solving the $(\rho, \eta, \gamma)$-approximate-gcd problem with success probability at least $\epsilon/2$.
+    \end{theorem}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Setup:} 
+    Algorithm $\mathcal{B}$ is given random noisy multiples of a hidden integer $p$. Its goal is to find $p$. To do this, $\mathcal{B}$ uses the attacker $\mathcal{A}$ as a tool, feeding $\mathcal{A}$ simulated public keys and ciphertexts to extract information about $p$.
+\end{frame}
+
+\begin{frame}{The Mechanism: Oracle and Binary GCD}
+    How does $\mathcal{B}$ use the attacker $\mathcal{A}$ to find the secret key $p$?
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Step 1: The Learn-LSB Oracle}
+    \begin{itemize}
+        \item $\mathcal{B}$ constructs randomized, simulated ciphertexts from a noisy integer $z$.
+        \item By observing whether $\mathcal{A}$ correctly guesses the encrypted bits, $\mathcal{B}$ can deduce the \textbf{parity of the quotient} $q_p(z)$, without ever knowing $p$!
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Step 2: The Binary GCD Extraction}
+    \begin{itemize}
+        \item $\mathcal{B}$ takes two noisy multiples of $p$ and runs a standard Binary-GCD algorithm on them.
+        \item Whenever the algorithm needs to know if a value is even or odd, $\mathcal{B}$ queries the $\text{Learn-LSB}$ Oracle.
+        \item \textbf{Result:} Iterating this process strips away the noise terms completely, reducing the values down to the exact secret key $p$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Guaranteeing Success: The Distribution Match}
+    For this reduction to hold, we must guarantee that attacker $\mathcal{A}$ cannot tell that it is being manipulated by $\mathcal{B}$. The simulated ciphertexts must look perfectly real.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Why $\mathcal{A}$ is successfully fooled:}
+    \begin{enumerate}
+        \item \textbf{Quotient Uniformity:} By applying the \textbf{Leftover Hash Lemma}, the sum of the random subsets used to build the simulated ciphertext makes the underlying quotient statistically uniform.
+        \pause
+        \item \textbf{Noise Drowning:} $\mathcal{B}$ injects a massive random noise term (drawn from $2^{\rho'}$) into the simulation. This completely ``drowns out" and statistically hides any underlying discrepancies in the base noise.
+    \end{enumerate}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}
+    Because the simulated data is statistically indistinguishable from real FHE traffic, $\mathcal{A}$'s advantage holds. A rigorous counting argument proves that $\mathcal{B}$ will successfully recover the Approximate-GCD secret key $p$ with probability $\ge \epsilon/2$.
+    \end{intuition}
+\end{frame}
+
+\subsection{Why Standard Attacks Fail}
+
+\begin{frame}{Algebraic Failures: Continued Fractions}
+    If we cannot break the semantic security, can we attack the Approximate-GCD directly?
+    
+    \vspace{0.2cm}
+    \textbf{Attempt 1: Continued Fractions}
+    Since $x_1 \approx q_1 p$ and $x_2 \approx q_2 p$, we know the public ratio $x_1 / x_2$ is very close to the unknown rational $q_1 / q_2$. Can we find $q_1/q_2$ in the continued fraction expansion of $x_1/x_2$?
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{The Mathematical Failure:}
+    Let's analyze the distance between the public ratio and the target quotient ratio:
+    $$ \left| \frac{x_1}{x_2} - \frac{q_1}{q_2} \right| = \left| \frac{q_2(q_1 p + r_1) - q_1(q_2 p + r_2)}{q_2(q_2 p + r_2)} \right| \approx \left| \frac{q_2 r_1 - q_1 r_2}{p \cdot q_2^2} \right| $$
+    \pause
+    
+    \begin{block}{The Cross-Noise Barrier}
+    The distance is dominated by the cross-multiplied noise term $(q_2 r_1 - q_1 r_2) / p$. Because this distance is significantly larger than $1/q_2^2$, the target fraction is hopelessly obscured by the noise.
+    \end{block}
+\end{frame}
+
+\subsection{The Geometric Threat: Lattice Attacks}
+
+\begin{frame}{The Simultaneous Diophantine Approximation (SDA)}
+    Because simple algebraic attacks fail, attackers must turn to the geometry of numbers -- specifically lattice reduction algorithms like LLL.
+    \pause
+    
+    \vspace{0.2cm}
+    Given samples $x_0, x_1, \dots, x_t$, we construct a $(t+1)$-dimensional SDA lattice $L$ spanned by the rows of matrix $M$:
+    $$ M = \begin{pmatrix} 
+    2^\rho & x_1 & x_2 & \dots & x_t \\ 
+    0 & -x_0 & 0 & \dots & 0 \\ 
+    0 & 0 & -x_0 & \dots & 0 \\ 
+    \vdots & \vdots & \vdots & \ddots & \vdots \\ 
+    0 & 0 & 0 & \dots & -x_0 
+    \end{pmatrix} $$
+\end{frame}
+
+\begin{frame}{Finding the Target Vector}
+    The attacker's goal is to find the hidden vector of quotients $\vec{q} = \langle q_0, q_1, \dots, q_t \rangle$. Let's multiply $\vec{q}$ by $M$:
+    
+    $$ \vec{v} = \vec{q} \cdot M = \langle q_0 2^\rho, \ q_0 x_1 - q_1 x_0, \ \dots, \ q_0 x_t - q_t x_0 \rangle $$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Critical Cancellation:} 
+    Look at the components $q_0 x_i - q_i x_0$. Since $x_i = q_i p + r_i$, we can expand:
+    $$ q_0 x_i - q_i x_0 = q_0(q_i p + r_i) - q_i(q_0 p + r_0) $$
+    $$ = q_0 q_i p + q_0 r_i - q_i q_0 p - q_i r_0 $$
+    $$ = \mathbf{q_0 r_i - q_i r_0} $$
+    \pause
+    
+    \begin{block}{The Threat}
+    The secret key $p$ perfectly cancels out! This leaves $\vec{v}$ as a relatively short target vector in the lattice. If an algorithm like LLL can find $\vec{v}$, the attacker recovers the quotients, computes $p \approx x_0 / q_0$, and the scheme is broken.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Defeating the Lattice}
+    Will LLL actually find this target vector $\vec{v}$? This is where our parameter selection defends the scheme.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 1: Attacker uses a small number of samples $t$}
+    \begin{itemize}
+        \item By Minkowski's bound, a low-dimensional lattice contains exponentially many \textit{spurious} vectors that are much shorter than our target $\vec{v}$. 
+        \item The target vector is completely buried in geometric noise.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 2: Attacker uses a massive number of samples $t$}
+    \begin{itemize}
+        \item The attacker forces $t$ to be huge so $\vec{v}$ is the absolute shortest vector.
+        \item However, known lattice reduction algorithms take time $\approx 2^{t/k}$ to find a $2^k$ approximation.
+        \item Isolating $\vec{v}$ strictly requires time roughly $\mathbf{2^{\gamma / \eta^2}}$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Summary of Secure Parameters}
+    By setting the bit-length of the public key elements ($\gamma$) to be massively large, we force the lattice dimension to be computationally impossible to reduce. 
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Final Secure Parameters:}
+    \begin{itemize}
+        \item $\rho = \mathcal{O}(\lambda)$: Prevents brute-force guessing of the noise $r$.
+        \item $\eta = \tilde{\mathcal{O}}(\lambda^2)$: Supports the homomorphic noise budget (depth for bootstrapping).
+        \item $\gamma = \tilde{\mathcal{O}}(\lambda^5)$: Specifically ensures that $\gamma = \omega(\eta^2 \log \lambda)$. This makes the time $2^{\gamma / \eta^2}$ super-polynomial, thwarting all SDA and lattice reduction algorithms.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textit{Conclusion:} While this results in massive public keys, it mathematically guarantees rigorous security based solely on the hardness of the Approximate-GCD over the integers.
+\end{frame}
+
+\section{Squashing the Decryption Circuit and Bootstrapping}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{The Bootstrapping Blueprint}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{Going from SHE to FHE: The Bootstrapping Blueprint}
+    \textbf{The Problem:}
+    Our Somewhat Homomorphic Encryption (SHE) scheme can add and multiply.
+    However, every multiplication squares the noise.
+    \pause
+
+    \vspace{0.3cm}
+    Eventually the noise exceeds the decryption boundary $p/2$, and the
+    ciphertext is permanently destroyed.
+    How can we evaluate a circuit of arbitrary depth?
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{The Solution: Bootstrapping (Gentry, 2009)}
+
+    If a scheme can homomorphically evaluate its own decryption circuit
+    plus one additional gate, it can evaluate \emph{any} circuit of
+    \emph{any} depth.
+\end{frame}
+
+\begin{frame}{Defining Bootstrappability}
+    \begin{definition}[Augmented Decryption Circuits $\mathcal{D}_E(\lambda)$]
+    For a given security parameter $\lambda$, $\mathcal{D}_E(\lambda)$
+    consists of two circuits, both taking a secret key and two ciphertexts
+    as input:    
+    \begin{itemize}
+        \item One circuit decrypts both ciphertexts and \textbf{adds} the
+              plaintext bits mod~2.
+        \item One circuit decrypts both ciphertexts and \textbf{multiplies}
+              the plaintext bits mod~2.
+    \end{itemize}
+    \end{definition}
+
+    \vspace{0.3cm}
+    \begin{definition}[Bootstrappable Encryption]
+    A homomorphic scheme $E$ is \textbf{bootstrappable} if, for every $\lambda$:
+    \[
+        \mathcal{D}_E(\lambda) \;\subseteq\; \mathcal{C}_E(\lambda)
+    \]
+    where $\mathcal{C}_E(\lambda)$ is the set of circuits $E$ can correctly
+    evaluate.
+    \end{definition}
+\end{frame}
+
+\begin{frame}{From Bootstrappability to Full Homomorphism}
+    \begin{theorem}[Gentry 2009]
+    There is an efficient transformation that, given a bootstrappable scheme
+    $E$ and a parameter $d = d(\lambda)$, outputs a scheme $E^{(d)}$ such
+    that:
+    \begin{enumerate}
+        \item $E^{(d)}$ is compact, and
+        \item $E^{(d)}$ is correct for all circuits of depth up to $d$.
+    \end{enumerate}
+    Moreover, $E^{(d)}$ is semantically secure if $E$ is.
+    \end{theorem}
+
+    \vspace{0.4cm}
+    % \textbf{Our goal for the rest of this talk:}
+
+    Now we prove that our squashed scheme satisfies
+    \[
+        \mathcal{D}_E \;\subset\; \mathcal{C}(\mathcal{P}_E)
+    \]
+    so that the above theorem applies and we obtain a fully homomorphic scheme.
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{The Depth Problem}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{The Depth Problem: Why Naive Decryption Fails}
+    \textbf{Standard decryption:}
+    \[
+        m' \;=\; (c \bmod p) \bmod 2
+        \;=\; \bigl(c - p\lfloor c/p \rceil\bigr) \bmod 2
+    \]
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{The roadblock:} Computing $\lfloor c/p \rceil$ requires integer
+    division. As a boolean circuit the carry chain is roughly $\lambda$
+    AND-gate layers deep. After $d$ AND layers, noise $\approx r^{2^d}$.
+    With $d = \lambda$ this is catastrophic.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{The permitted degree bound:}
+
+    A circuit $C$ belongs to $\mathcal{C}(\mathcal{P}_E)$ if its
+    polynomial $f$ satisfies:
+    \[
+        d \;\leq\; \frac{\eta - 4 - \log \|\hat{f}\|_1}{\rho' + 2}
+    \]
+
+    \vspace{0.1cm}
+    The division circuit's degree far exceeds this bound.
+    We must \textbf{squash} the decryption circuit to bring it within reach.
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Squashing the Decryption Circuit}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{Squashing: The Strategy}
+    \textbf{The key observation:}
+
+    The division $\lfloor c/p \rceil$ is expensive because $p$ is secret.
+    If the key owner pre-computes a hint about $1/p$ and publishes it,
+    the server can approximate the division using only public information  -- 
+    and the remaining homomorphic work becomes shallow.
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Three new parameters:}
+    \begin{itemize}
+        \item $\kappa = \gamma\eta/\rho'$:\quad
+              precision bits for the fixed-point approximation of $1/p$
+        \item $\theta = \lambda$:\quad
+              Hamming weight of the sparse secret selector vector $\vec{s}$
+        \item $\Theta = \omega(\kappa \cdot \log\lambda)$:\quad
+              total size of the public hint vector $\vec{y}$
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{The shift:} Move the expensive $1/p$ computation from
+    decrypt-time (constrained by the noise budget) to key-generation time
+    (unconstrained, done once offline by the key owner).
+\end{frame}
+
+\begin{frame}{Squashing: Modifying Key Generation}
+    Starting from $\mathsf{sk}^* = p$ and $\mathsf{pk}^*$ of the base scheme:
+
+    \vspace{0.15cm}
+    \textbf{Step 1  --  Scaled approximation of $1/p$:}
+    \[
+        x_p \;\leftarrow\; \lfloor 2^\kappa / p \rceil
+    \]
+    Computed by the key owner in the clear. After this, $p$ is never needed again.
+    \pause
+
+    \vspace{0.15cm}
+    \textbf{Step 2  --  Sparse secret selector $\vec{s}$:}
+
+    Choose a random $\Theta$-bit binary vector $\vec{s}$ with Hamming weight
+    exactly $\theta$. Set $S = \{i : s_i = 1\}$.
+    $\vec{s}$ becomes the \textbf{new secret key}, replacing $p$.
+    \pause
+
+    \vspace{0.15cm}
+    \textbf{Step 3  --  Public hint vector $\vec{y}$:}
+
+    Choose random $u_i \in [0, 2^{\kappa+1})$ with
+    $\sum_{i \in S} u_i \equiv x_p \pmod{2^{\kappa+1}}$.
+    Set $y_i = u_i / 2^\kappa$. Publish $\vec{y} = \{y_1, \ldots, y_\Theta\}$.
+    Each $y_i \in [0,2)$ with $\kappa$ bits of precision, satisfying:
+    \[
+        \Bigl[\sum_{i \in S} y_i\Bigr]_2 \;=\; \frac{1}{p} - \Delta_p,
+        \qquad |\Delta_p| < 2^{-\kappa}
+    \]
+
+    Output: $\mathsf{sk} = \vec{s}$,\quad
+    $\mathsf{pk} = (\mathsf{pk}^*,\; y_1, \ldots, y_\Theta)$.
+\end{frame}
+
+\begin{frame}{Squashing: Modified Encrypt and Decrypt}
+    \textbf{Modified Encrypt:}
+
+    Generate $c^*$ as before. Then for each $i \in \{1,\ldots,\Theta\}$:
+    \[
+        z_i \;\leftarrow\; [c^* \cdot y_i]_2
+    \]
+    keeping only $n = \lceil\log\theta\rceil + 3$ bits of precision.
+    Output $(c^*,\; z_1, \ldots, z_\Theta)$.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{Why the $z_i$ encode the division:}
+    \[
+        \sum_{i \in S} z_i
+        \;\approx\; c^* \sum_{i \in S} y_i
+        \;\approx\; \frac{c^*}{p} \pmod{2}
+    \]
+    So $\lfloor \sum_i s_i z_i \rceil$ approximates $\lfloor c^*/p \rceil$
+    without the server ever knowing $p$ or $\vec{s}$.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{Modified Decrypt:}
+    \[
+        m' \;\leftarrow\;
+        \Bigl[\, c^* - \Bigl\lfloor \sum_{i=1}^\Theta s_i z_i \Bigr\rceil \,\Bigr]_2
+    \]
+    A sparse dot product of $\theta$ nonzero terms  --  far shallower than
+    integer division.
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{The Complete Encryption Scheme}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{The Complete FHE Scheme: KeyGen}
+    \textsc{KeyGen}($\lambda$):
+    \begin{enumerate}
+        \item $p \;\leftarrow$ random odd $\eta$-bit integer
+              \hfill{\small(secret; used here only)}
+        \item $\mathsf{pk}^* \;\leftarrow \{x_0,\ldots,x_\tau\}$
+              where $x_i = q_i p + 2r_i$
+              \hfill{\small(encryptions of zero)}
+        \item $x_p \;\leftarrow \lfloor 2^\kappa/p \rceil$
+        \item $\vec{s} \;\leftarrow$ random $\Theta$-bit binary vector
+              with $\mathrm{wt}(\vec{s}) = \theta$;\quad $S = \{i : s_i = 1\}$
+        \item Choose $u_i$ at random subject to
+              $\displaystyle\sum_{i\in S} u_i \equiv x_p \pmod{2^{\kappa+1}}$;\quad
+              set $y_i = u_i/2^\kappa$
+        \item Output $\mathsf{sk} = \vec{s}$ and
+              $\mathsf{pk} = \bigl(\mathsf{pk}^*,\; y_1, \ldots, y_\Theta\bigr)$
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{The Complete FHE Scheme: Encrypt and Evaluate}
+    \textbf{\textsc{Encrypt}($\mathsf{pk}$,\; $m \in \{0,1\}$):}
+    \begin{enumerate}
+        \item Choose random $T \subseteq \{1,\ldots,\tau\}$
+              and $r \in (-2^{\rho'}, 2^{\rho'})$
+        \item $c^* \;\leftarrow \bigl(m + 2r + 2\sum_{i\in T} x_i\bigr)
+              \bmod x_0$
+        \item For each $i$:\; $z_i \;\leftarrow [c^* \cdot y_i]_2$,
+              keeping $n = \lceil\log\theta\rceil + 3$ bits of precision
+        \item Output $(c^*,\; z_1, \ldots, z_\Theta)$
+    \end{enumerate}
+
+    \vspace{0.4cm}
+    \textbf{\textsc{Evaluate}($\mathsf{pk}$,\; $C$,\; $c_1,\ldots,c_t$):}
+    \begin{enumerate}
+        \item Apply the integer addition and multiplication gates of $C$
+              to the $c^*$-parts of each ciphertext
+        \item Noise grows additively under addition, quadratically under
+              multiplication
+        \item Recompute $z_i \;\leftarrow [c^*_\mathsf{out} \cdot y_i]_2$
+              for the output ciphertext
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{The Complete FHE Scheme: Decrypt}
+    \textbf{\textsc{Decrypt}($\mathsf{sk}$,\; $(c^*, \vec{z})$):}
+    \begin{enumerate}
+        \item Sparse dot product:
+              $\sigma \;\leftarrow \displaystyle\sum_{i=1}^\Theta s_i \cdot z_i$
+              \hfill{\small(only $\theta$ nonzero terms)}
+        \item Round: $v \;\leftarrow \lfloor \sigma \rceil$
+        \item Output $m' = (c^* - v) \bmod 2$
+    \end{enumerate}
+
+    \vspace{0.4cm}
+    \textbf{Why decryption is correct:}
+
+    $\sigma$ is within $\tfrac{1}{4}$ of the integer $\lfloor c^*/p \rceil$,
+    so rounding always recovers the correct value. The bound $\tfrac{1}{4}$
+    comes from two error terms, each at most $\tfrac{1}{16}$:
+    \begin{itemize}
+        \item Truncation error from $n$-bit precision of $z_i$:
+              $|\sum_i s_i \Delta_i| \leq \tfrac{1}{16}$
+        \item Approximation error from $x_p \approx 2^\kappa/p$:
+              $|c^* \cdot \Delta_p| < \tfrac{1}{16}$
+    \end{itemize}
+
+    \vspace{0.2cm}
+    Total error $< \tfrac{1}{8} < \tfrac{1}{2}$, so rounding is unambiguous.
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Proving Bootstrappability}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{The Scheme is Bootstrappable}
+    \begin{theorem}
+    Let $E$ be the squashed scheme and $\mathcal{D}_E$ its augmented
+    decryption circuits. Then $\mathcal{D}_E \subset \mathcal{C}(\mathcal{P}_E)$.
+    That is, $E$ is bootstrappable, and by [Gentry09, Theorem 4], $E$ is fully
+    homomorphic.
+    \end{theorem}
+    % \pause
+
+    % \vspace{0.3cm}
+    % \textbf{Proof strategy.}
+    % Express the decryption equation
+    % $m' = (c^* - \lfloor\sum_i s_i z_i\rceil) \bmod 2$
+    % as a permitted polynomial in the secret key bits $s_i$, and show its
+    % degree is within the bound of Equation~(1).
+
+    % \vspace{0.3cm}
+    % The computation decomposes into three steps, each contributing a factor
+    % to the total degree:
+
+    % \vspace{0.2cm}
+    % \begin{center}
+    % \renewcommand{\arraystretch}{1.3}
+    % \begin{tabular}{clr}
+    %     \hline
+    %     \textbf{Step} & \textbf{Computation} & \textbf{Degree in $s_i$} \\
+    %     \hline
+    %     1 & Selection:\; $a_i = s_i \cdot z_i$ \quad($z_i$ is a plain constant) & $2$ \\
+    %     2 & Column Hamming weights via elem.\ sym.\ polynomials & $\leq\theta$ \\
+    %     3 & Three-for-two on $n{+}1$ numbers; final rounding & $\leq 32\log^2\!\theta$ \\
+    %     \hline
+    %     & Total (product of steps) & $64\theta\log^2\!\theta$ \\
+    %     \hline
+    % \end{tabular}
+    % \end{center}
+\end{frame}
+
+% \begin{frame}{Completing the Proof}
+%     From the previous slide: total degree of the decryption polynomial
+%     $\leq 64\theta\log^2\!\theta$.
+
+%     \vspace{0.3cm}
+%     With $\theta = \lambda$: total degree $\leq 64\lambda\log^2\!\lambda$.
+
+%     \vspace{0.1cm}
+%     Augmented decryption (one extra AND or XOR gate, cf.\ Definition~2.5):
+%     degree $\leq 128\lambda\log^2\!\lambda$.
+%     \pause
+
+%     \vspace{0.3cm}
+%     \textbf{Fitting inside $\mathcal{C}(\mathcal{P}_E)$:}
+
+%     By Remark~3.6, with $\alpha = 128$ and $\beta = 7$ (since
+%     $\Theta, \tau < \lambda^7$), it is sufficient to set:
+%     \[
+%         \eta \;=\; \rho \cdot \Theta(\lambda \log^2\!\lambda)
+%     \]
+%     This makes the permitted degree bound wide enough to contain the
+%     augmented decryption circuit.
+
+%     \vspace{0.3cm}
+%     Therefore $\mathcal{D}_E \subset \mathcal{C}(\mathcal{P}_E)$, and
+%     by [Gentry09, Theorem 4], $E$ is fully homomorphic. \hfill$\square$
+%     \pause
+
+%     \vspace{0.3cm}
+%     It remains to prove Step~2, i.e.\ to show how the column Hamming
+%     weights $W_{-j}$ can be computed by polynomials of degree $\leq \theta$.
+%     This is Lemma~6.3.
+% \end{frame}
+
+% \begin{frame}{The Column Trick: Why It Is Needed}
+%     \textbf{Why not apply three-for-two directly to all $\Theta$ numbers $a_i$?}
+
+%     That gives degree $\leq 32\Theta^{1.71} \approx 32\lambda^{12}$  -- 
+%     completely unworkable.
+%     \pause
+
+%     \vspace{0.3cm}
+%     \textbf{The column trick.}
+%     Write each $a_i$ in binary: $a_i = \sum_j 2^{-j} a_{i,-j}$.
+%     For each bit position $j$, define the \emph{column Hamming weight}:
+%     \[
+%         W_{-j} \;=\; \sum_{i=1}^\Theta a_{i,-j}
+%     \]
+%     Since at most $\theta$ of the $a_i$ are nonzero, $W_{-j} \leq \theta$
+%     and fits in $\lceil\log(\theta+1)\rceil < n$ bits. The key identity:
+%     \[
+%         \sum_i a_i \;=\; \sum_j 2^{-j} W_{-j}
+%     \]
+%     compresses $\Theta$ numbers into $n+1 \approx \log\theta$ numbers.
+%     Three-for-two then runs on $\log\theta$ inputs instead of $\Theta$,
+%     giving degree $\leq 32\log^2\!\theta$ instead of $32\lambda^{12}$.
+% \end{frame}
+
+% \begin{frame}{Hamming Weight Bits as Polynomials}
+%     \begin{lemma}
+%     Let $\vec{\sigma} = \langle\sigma_1,\ldots,\sigma_t\rangle$ be a binary
+%     vector and $W = W(\vec{\sigma})$ its Hamming weight, with binary
+%     representation $W = \sum_{k} 2^k W_k$. Then for every $k$:
+%     \[
+%         W_k(\vec{\sigma})
+%         \;=\; e_{2^k}(\vec{\sigma}) \bmod 2
+%         \;=\; \Bigl(\!\sum_{|S|=2^k}\prod_{j \in S} \sigma_j\Bigr) \bmod 2
+%     \]
+%     This has degree exactly $2^k$ in $\sigma_1,\ldots,\sigma_t$.
+%     Moreover, all bits $W_0,\ldots,W_k$ can be computed simultaneously by
+%     an arithmetic circuit of size $2^k \cdot t$.
+%     \end{lemma}
+%     \pause
+
+%     \vspace{0.2cm}
+%     \textbf{Why degree $\leq \theta$ in our setting:}
+
+%     In Step~2 the inputs $\sigma_j = a_{i,-j}$ have at most $\theta$
+%     nonzero entries. So $e_k(\vec{\sigma}) = 0$ for all $k > \theta$,
+%     meaning we only ever need $e_1, e_2, \ldots, e_\theta$.
+%     The degree is therefore at most $\theta$, regardless of $t = \Theta$.
+
+%     \vspace{0.2cm}
+%     \textbf{Note:} The circuit above is not shallow. But
+%     since it computes low-degree polynomials, Lemma~3.5 guarantees it is
+%     a permitted circuit.
+% \end{frame}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Security of the Squashed Scheme}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{frame}{Security: Two Hardness Assumptions}
+    The squashed scheme requires two independent hardness assumptions.
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Assumption 1  --  Approximate GCD (AGCD):}
+
+    Given many samples $x_i = q_i \cdot p + r_i$ where $r_i$ is small
+    and $p$ is a hidden large odd integer, find $p$.
+
+    \vspace{0.1cm}
+    Defends the base scheme: public key elements and fresh ciphertexts
+    are computationally indistinguishable from random integers.
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Assumption 2  --  Sparse Subset Sum (SSSP):}
+
+    Given $y_1, \ldots, y_\Theta$ and the knowledge that some
+    $\theta$-sparse subset sums to $\approx 1/p \pmod{2}$,
+    find the subset $S$.
+
+    \vspace{0.1cm}
+    Defends the hint vector $\vec{y}$: knowing $\vec{y}$ reveals nothing
+    about which $\theta$ indices form $S$.
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Note:} SSSP is a separate assumption, not implied by AGCD.
+\end{frame}
+
+\section{Evolution and Open Problems}
+
+\begin{frame}{The Evolution of Integer FHE}
+    The original 2010 DGHV scheme was a conceptual breakthrough, but suffered from massive public key sizes ($\tilde{\mathcal{O}}(\lambda^{10})$) and severe performance bottlenecks. Subsequent research rapidly optimized the integer paradigm:
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{1. Key Compression \& Modulus Switching (2011--2012):}
+    \begin{itemize}
+        \item Evaluated quadratic forms and adopted ``modulus switching" (adapted from the BGV scheme) to slash the public key size down to $\tilde{\mathcal{O}}(\lambda^5)$.
+        \item \textit{Crucial impact:} Completely eliminated the need for the complex ``squashing" step prior to bootstrapping.
+    \end{itemize}
+    \pause
+
+    \textbf{2. Batching \& SIMD Operations (2013):}
+    \begin{itemize}
+        \item Utilized the Chinese Remainder Theorem (CRT) with multiple secret primes to encrypt vectors of plaintext bits into a single ciphertext, drastically improving amortized efficiency.
+    \end{itemize}
+    \pause
+
+    \textbf{3. Scale-Invariant Noise \& Message Spaces (2014--2015):}
+    \begin{itemize}
+        \item Achieved linear (rather than exponential) noise growth, dropping the modulus switching requirement entirely.
+        \item Expanded the message space from binary ($\mathbb{Z}_2$) to any prime ($\mathbb{Z}_p$), reducing the multiplicative degree of the decryption circuit.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Open Problems and the Future of FHE}
+    While the integer-based approach has been heavily optimized, several critical challenges remain for the Fully Homomorphic Encryption community at large:
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{1. The Bootstrapping Bottleneck:}
+    \begin{itemize}
+        \item Even with scale-invariant noise and SIMD batching, homomorphically evaluating the decryption circuit remains a massive computational tax. Minimizing or entirely bypassing the need for bootstrapping remains the holy grail of FHE.
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{2. Ciphertext Expansion Ratio:}
+    \begin{itemize}
+        \item The ratio of the ciphertext size to the actual underlying plaintext data is still highly impractical for low-bandwidth environments or massive databases.
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{3. RLWE vs. Approximate-GCD:}
+    \begin{itemize}
+        \item Modern practical FHE libraries (like HElib, SEAL, and TFHE) have largely standardized on Ring Learning With Errors (RLWE) over polynomial rings. 
+        \item \textit{Open Question:} Can the conceptual simplicity of the integer approach (Approximate-GCD) ever be engineered to competitively match the hardware-accelerated speeds of RLWE schemes?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+    \begin{center}
+        \Large \textbf{Thank You!}
+        
+        \vspace{0.5cm}
+        \normalsize
+        Are there any questions?
+    \end{center}
+\end{frame}
+
+\end{document}

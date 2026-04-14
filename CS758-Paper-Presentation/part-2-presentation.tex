@@ -1,0 +1,212 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\title[The SHE Scheme]{Part 2: The Somewhat Homomorphic Scheme (SHE)}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Nirav Bhattad}
+\date{March 27, 2026}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Part 2}
+    \tableofcontents
+\end{frame}
+
+\section{The Symmetric Foundation}
+\begin{frame}{The Symmetric Foundation: Parameters}
+    Before tackling the public-key version, we build the foundation using a beautifully simple symmetric-key scheme. 
+    
+    \vspace{0.3cm}
+    \textbf{Parameters (based on security parameter $\lambda$):}
+    \begin{itemize}
+        \item $\eta$: The bit-length of the secret key.
+        \item $\rho$: The bit-length of the noise.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Key Generation -- $\text{KeyGen}(\lambda)$:}
+    \begin{itemize}
+        \item Choose a random odd integer $p$ from the interval $[2^{\eta-1}, 2^{\eta})$.
+        \item This integer $p$ is our \textbf{secret key}.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The Symmetric Foundation: Encryption}
+    \textbf{Encryption -- $\text{Encrypt}(p, m)$:}
+    To encrypt a plaintext bit $m \in \{0,1\}$, we choose two random variables:
+    \begin{itemize}
+        \item $q$: A large random integer (the quotient).
+        \item $r$: A small random integer (the noise), where $|r| < 2^{\rho}$.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    We compute the ciphertext $c$ as:
+    $$c = p \cdot q + 2r + m$$
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Intuition:} 
+    Think of $p \cdot q$ as a giant "anchor point" on a number line. To hide our message $m$, we step a tiny, random distance away from this anchor (the $2r$ term) and add our bit. To anyone without the secret key $p$, this just looks like a massive, random integer.
+\end{frame}
+
+\begin{frame}{The Symmetric Foundation: Decryption}
+    \textbf{Decryption -- $\text{Decrypt}(p, c)$:}
+    To recover the message $m$, we compute:
+    $$m' = (c \pmod p) \pmod 2$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Why does this work?} Let's break down the mechanics:
+    \begin{enumerate}
+        \item Substitute $c$: $(p \cdot q + 2r + m \pmod p)$
+        \item Because $p \cdot q$ is an exact multiple of $p$, it vanishes under modulo $p$.
+        \item We are left with $(2r + m \pmod 2)$.
+        \item Because $2r$ is inherently even, it vanishes under modulo 2, leaving exactly $m$.
+    \end{enumerate}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Critical Condition:}
+    Step 2 \textit{only} yields $2r + m$ if the absolute value of the noise is strictly less than half the modulus: $|2r + m| < p/2$. If the noise is too large, it "wraps around" $p$, and decryption fails entirely.
+\end{frame}
+
+\begin{frame}{Symmetric Decryption: A Visualizable Example}
+    Let's put numbers to the theory.
+    
+    \vspace{0.2cm}
+    \textbf{Setup:}
+    \begin{itemize}
+        \item Secret Key $p = 31$
+        \item Message bit $m = 1$
+    \end{itemize}
+    \pause
+    
+    \textbf{Encrypt:}
+    Choose a random $q = 5$ and a small noise $r = 2$.
+    $$c = (31 \cdot 5) + 2(2) + 1 = 155 + 4 + 1 = 160$$
+    The ciphertext is $160$.
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{Decrypt:}
+    $$160 \pmod{31} = 5$$
+    $$5 \pmod 2 = 1$$
+    We successfully recovered $m = 1$. The noise ($2r+m = 5$) was safely smaller than $p/2$ ($15.5$).
+\end{frame}
+
+\section{Transitioning to a Public-Key Scheme}
+\begin{frame}{Public-Key Parameters \& KeyGen}
+    A true FHE scheme requires public-key infrastructure. We achieve this by publishing a massive list of "encryptions of zero."
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{New Parameters:}
+    \begin{itemize}
+        \item $\gamma$: The bit-length of the integers in the public key.
+        \item $\tau$: The number of integers in the public key.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{Public-Key Generation -- $\text{KeyGen}(\lambda)$:}
+    \begin{itemize}
+        \item The secret key remains the odd integer $p$.
+        \item Generate $\tau + 1$ samples of the form $x_i = p \cdot q_i + 2r_i$.
+        \item Ensure $x_0$ is the largest element, $x_0$ is odd, and its noise term $r_0$ is even.
+        \item The public key is the tuple: $pk = \langle x_0, x_1, \dots, x_\tau \rangle$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Public-Key Encryption}
+    \textbf{Encryption -- $\text{Encrypt}(pk, m)$:}
+    To encrypt a bit $m \in \{0,1\}$:
+    \begin{itemize}
+        \item Choose a random subset $S \subseteq \{1, 2, \dots, \tau\}$.
+        \item Choose a small random noise integer $r$.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    Compute the ciphertext:
+    $$c = \left[ m + 2r + 2\sum_{i \in S} x_i \right]_{x_0}$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Intuition:} 
+    Every $x_i$ is effectively an encryption of $0$. By summing a random subset of $x_i$, we are computing $0 + 0 + 0 \dots$, creating a brand new, randomized encryption of zero. We then add our message $m$ to it. The final modulo $x_0$ prevents the physical bit-size of the ciphertext from growing infinitely large.
+\end{frame}
+
+\section{Homomorphism and The Noise Bottleneck}
+\begin{frame}{Homomorphic Addition}
+    Is this scheme homomorphic? Let's define $\text{Evaluate}$ simply as integer addition and multiplication. 
+    
+    \vspace{0.2cm}
+    Given two ciphertexts: 
+    $c_1 = p \cdot q_1 + 2r_1 + m_1$ 
+    $c_2 = p \cdot q_2 + 2r_2 + m_2$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Addition:}
+    $$c_1 + c_2 = p(q_1 + q_2) + 2(r_1 + r_2) + (m_1 + m_2)$$
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{Observation:}
+    The structure is perfectly preserved! We have a new multiple of $p$, plus $2 \times (\text{new noise})$, plus the sum of the messages. The noise grows \textbf{linearly} via the triangle inequality.
+\end{frame}
+
+\begin{frame}{Homomorphic Multiplication}
+    Now, let us multiply the ciphertexts:
+    
+    $$c_1 \cdot c_2 = (p \cdot q_1 + 2r_1 + m_1)(p \cdot q_2 + 2r_2 + m_2)$$
+    \pause
+    
+    Expanding this yields:
+    $$c_1 \cdot c_2 = p \big( p \cdot q_1q_2 + q_1(2r_2 + m_2) + q_2(2r_1 + m_1) \big)$$
+    $$+ \ 2 \big( 2r_1r_2 + r_1m_2 + r_2m_1 \big) + m_1m_2$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Observation:}
+    The structure is still preserved. We have a massive multiple of $p$, plus $2 \times (\text{mixed noise terms})$, plus the product of the messages $m_1m_2$. 
+\end{frame}
+
+\begin{frame}{The Climax: The Noise Bottleneck}
+    Look closely at the dominant noise term in the multiplication equation:
+    $$\mathbf{2r_1r_2}$$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Bottleneck:}
+    When we multiply two ciphertexts, the noise does not just add—it multiplies. It \textbf{squares} the magnitude of the noise.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Consequence:}
+    Recall our strict decryption rule: the noise must remain strictly less than $p/2$. Because multiplication squares the noise, we can only perform a very limited number of sequential multiplications before the noise explodes past $p/2$, hopelessly destroying the underlying plaintext.
+    \pause
+    
+    \vspace{0.3cm}
+    This is why the scheme is currently only \textbf{Somewhat Homomorphic}. To achieve Fully Homomorphic Encryption, we must find a way to "clean" this noise.
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{Levieil08}
+        É. Levieil and D. Naccache.
+        \textit{Cryptographic test correction}. 
+        Public Key Cryptography, Lecture Notes in Computer Science, 2008.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

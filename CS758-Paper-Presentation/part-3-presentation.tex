@@ -1,0 +1,175 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\title[Security \& Approx-GCD]{Part 3: Security and The Approximate-GCD Problem}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Nirav Bhattad}
+\date{March 27, 2026}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Part 3}
+    \tableofcontents
+\end{frame}
+
+\section{The Security Reduction}
+\begin{frame}{The Need for Rigorous Security}
+    We have built a scheme that can homomorphically add and multiply. But is it actually secure?
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Cryptographic Standard:}
+    \begin{itemize}
+        \item In modern cryptography, we do not guess that a scheme is secure; we prove that breaking it is equivalent to solving a known hard mathematical problem.
+        \item For RSA, the hard problem is integer factorization.
+        \item For Gentry's original FHE, it is finding short vectors in ideal lattices.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Our Foundation:}
+    For our integer scheme, the authors reduce semantic security to a surprisingly simple-sounding problem: the \textbf{Approximate Integer Greatest Common Divisor} (Approximate-GCD).
+\end{frame}
+
+\begin{frame}{Formalizing Approximate-GCD}
+    Recall our noise distribution $\mathcal{D}_{\gamma,\rho}(p)$, which outputs integers of the form $x = pq + r$, where $x \approx 2^\gamma$, and $r \in (-2^\rho, 2^\rho)$.
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[1.1: The $(\rho, \eta, \gamma)$-Approximate-GCD Problem]
+    Given polynomially many samples $x_0, x_1, \dots, x_\tau$ drawn from $\mathcal{D}_{\gamma,\rho}(p)$ for a randomly chosen $\eta$-bit odd integer $p$, output the hidden integer $p$.
+    \end{definition}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Search-to-Decision Reduction:}
+    The authors prove that if an attacker can predict the encrypted bit with a non-negligible advantage, they can be used as an oracle to extract the least-significant bit of the quotients. This allows the recovery of the secret key $p$ via a modified binary GCD algorithm. 
+    
+    \textit{Conclusion:} Semantic security holds as long as Approximate-GCD is hard.
+\end{frame}
+
+\section{Why Standard Algorithms Fail}
+\begin{frame}{The Naive Attack: The Euclidean Algorithm}
+    Let's put on our attacker hats. We are given two public samples $x_1$ and $x_2$.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Trivial Case (No Noise):}
+    If $r = 0$, then $x_1$ and $x_2$ are exact multiples of $p$. 
+    We simply run the 2,000-year-old Euclidean algorithm, compute $\gcd(x_1, x_2)$, and immediately recover $p$.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Reality (With Noise):}
+    The noise ruins everything. The Euclidean algorithm relies on strict mathematical divisibility. With even a tiny bit of noise, the modulo reductions in the Euclidean algorithm cause the remainders to explode rather than shrinking neatly to zero.
+\end{frame}
+
+\begin{frame}{The Sophisticated Attack: Continued Fractions}
+    What about Continued Fractions? They are standard tools for finding rational approximations.
+    
+    Since $x_1 / x_2 \approx q_1 / q_2$, maybe $q_1 / q_2$ appears in the continued fraction expansion of $x_1 / x_2$?.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Mathematical Failure:}
+    Let's analyze the distance between the public ratio and the target quotient ratio:
+    $$ \left| \frac{x_1}{x_2} - \frac{q_1}{q_2} \right| = \left| \frac{q_2 x_1 - q_1 x_2}{q_2 x_2} \right| $$
+    \pause
+    Substituting $x_i = q_i p + r_i$:
+    $$ = \left| \frac{q_2(q_1 p + r_1) - q_1(q_2 p + r_2)}{q_2(q_2 p + r_2)} \right| \approx \left| \frac{q_2 r_1 - q_1 r_2}{p \cdot q_2^2} \right| $$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Intuition:} The distance is dominated by the cross-noise term $(q_2 r_1 - q_1 r_2) / q_2^2$. This distance is simply \textit{not small enough} to guarantee that the continued fraction algorithm will converge on $q_1/q_2$. The noise completely obscures the target.
+\end{frame}
+
+\section{Lattice Attacks and Parameter Justification}
+\begin{frame}{The Geometric Threat: SDA and Lattices}
+    Because simple algebraic attacks fail, we must turn to the geometry of numbers—specifically lattice reduction algorithms like LLL.
+    \pause
+    
+    \vspace{0.2cm}
+    Given many samples $x_0, x_1, \dots, x_t$, the rational numbers $y_i = x_i / x_0$ form an instance of the \textbf{Simultaneous Diophantine Approximation (SDA)} problem.
+    \pause
+    
+    We apply Lagarias' SDA algorithm to the $(t+1)$-dimensional lattice $L$ spanned by the rows of matrix $M$:
+    $$ M = \begin{pmatrix} 
+    2^\rho & 0 & 0 & \dots & 0 \\ 
+    x_1 & -x_0 & 0 & \dots & 0 \\ 
+    x_2 & 0 & -x_0 & \dots & 0 \\ 
+    \vdots & \vdots & \vdots & \ddots & \vdots \\ 
+    x_t & 0 & 0 & \dots & -x_0 
+    \end{pmatrix} $$
+\end{frame}
+
+\begin{frame}{Finding the Target Vector}
+    The attacker wants to find the hidden quotients. Let's multiply $M$ by the unknown vector of quotients $\vec{q} = \langle q_0, q_1, \dots, q_t \rangle$:
+    
+    $$ \vec{v} = \langle q_0, q_1, \dots, q_t \rangle \cdot M = \langle q_0 2^\rho, q_0 x_1 - q_1 x_0, \dots, q_0 x_t - q_t x_0 \rangle $$
+    \pause
+    
+    \vspace{0.3cm}
+    Look closely at the components $q_0 x_i - q_i x_0$. Since $x_i = q_i p + r_i$, we can expand:
+    $$ q_0 x_i - q_i x_0 = q_0(q_i p + r_i) - q_i(q_0 p + r_0) $$
+    $$ = q_0 q_i p + q_0 r_i - q_i q_0 p - q_i r_0 $$
+    $$ = q_0 r_i - q_i r_0 $$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Danger:} The secret key $p$ perfectly cancels out! This leaves $\vec{v}$ as a relatively short target vector in the lattice, with length roughly $2^{\gamma+\rho-\eta}\sqrt{t+1}$. If LLL finds $\vec{v}$, the attacker recovers the quotients, and subsequently recovers $p = \lfloor x_0 / q_0 \rceil$.
+\end{frame}
+
+\begin{frame}{The Climax: Defeating Lattice Reduction}
+    Can LLL or BKZ find this target vector $\vec{v}$? This is where the paper's brilliant parameter selection saves the scheme.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 1: Attacker uses a small $t$ (Small Lattice Dimension)}
+    \begin{itemize}
+        \item Minkowski's bound dictates the presence of vectors bounded by the determinant.
+        \item There are exponentially many \textit{spurious} vectors in the lattice that are much shorter than our target $\vec{v}$. The target is hopelessly buried in geometric noise.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 2: Attacker uses a massive $t$ (Massive Lattice Dimension)}
+    \begin{itemize}
+        \item To make $\vec{v}$ the absolute shortest vector, $t$ must be huge.
+        \item Known lattice reduction algorithms take time $\approx 2^{t/k}$ to find a $2^k$ approximation.
+        \item Isolating $\vec{v}$ requires time roughly $2^{\gamma / \eta^2}$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Summary of Secure Parameters}
+    By setting the bit-length of the public key elements ($\gamma$) to be massively large specifically $\gamma = \omega(\eta^2 \log \lambda)$ the time $2^{\gamma / \eta^2}$ becomes super-polynomial. The attack is thwarted.
+    
+    \vspace{0.3cm}
+    \textbf{Final Secure Parameters:}
+    \begin{itemize}
+        \item $\rho = \mathcal{O}(\lambda)$: Prevents brute-force guessing of the noise.
+        \item $\eta = \tilde{\mathcal{O}}(\lambda^2)$: Supports the homomorphic noise budget (depth).
+        \item $\gamma = \tilde{\mathcal{O}}(\lambda^5)$: Thwarts SDA and Lattice Reduction algorithms.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Trade-off:} While this results in massive public keys (elements are $\tilde{\mathcal{O}}(\lambda^5)$ bits long), it guarantees rigorous security based solely on the hardness of the Approximate-GCD over the integers.
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

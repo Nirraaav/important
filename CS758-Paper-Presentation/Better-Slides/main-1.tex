@@ -1,0 +1,183 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+% Define custom theorem environments if needed
+\newtheorem{intuition}{Intuition}
+\newtheorem{motivation}{Motivation}
+
+\title[Phase 1: FHE \& Bootstrapping]{Phase 1: The FHE Dream and The Bootstrapping Blueprint}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Paper Presentation}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Phase 1}
+    \tableofcontents
+\end{frame}
+
+\section{Motivation \& The Integer Paradigm}
+
+\begin{frame}{Motivation: The Cloud Computing Conundrum}
+    \begin{motivation}
+    We possess robust cryptographic solutions for data \textbf{in transit} (TLS/SSL) and data \textbf{at rest} (AES). However, computing on that data traditionally requires decryption, creating a massive vulnerability when outsourcing to untrusted cloud servers.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Fully Homomorphic Encryption (FHE) Goal:}
+    Allow an untrusted party to take encrypted inputs, perform arbitrary, unbounded computations on them, and return an encrypted result. 
+    \pause
+    
+    \vspace{0.3cm}
+    When decrypted, this result must match exactly what the data owner would have obtained by computing on the plaintext locally.
+\end{frame}
+
+\begin{frame}{The Quest for the Simplest Secure Scheme}
+    \textit{"What is the simplest encryption scheme for which one can hope to achieve security?"}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Caesar Cipher Analogy:}
+    \begin{itemize}
+        \item Shift 'A' by 3 and 'B' by 3. You can trivially add those shifts together.
+        \item It is perfectly (and ironically) homomorphic under addition. 
+        \item \textbf{Fatal Flaw:} It is completely insecure.
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{The Paradigm Shift (2009 vs. 2010):}
+    \begin{itemize}
+        \item Craig Gentry's breakthrough 2009 FHE scheme utilized ideal lattices over polynomial rings—conceptually and mathematically heavy machinery.
+        \pause
+        \item \textbf{This Paper:} Asks if we can achieve the exact same FHE blueprint using only elementary addition and multiplication over the integers. 
+    \end{itemize}
+\end{frame}
+
+\section{Formalizing Fully Homomorphic Encryption}
+
+\begin{frame}{Formalizing the FHE Dream}
+    To prove a scheme works, we must rigorously define it. A homomorphic public key encryption scheme $\mathcal{E}$ consists of four Probabilistic Polynomial-Time (PPT) algorithms:
+    
+    \pause
+    $$\mathcal{E} = (\text{KeyGen}, \text{Encrypt}, \text{Decrypt}, \textbf{Evaluate})$$
+    
+    \vspace{0.3cm}
+    \textbf{The Evaluate Algorithm:}
+    Takes as input a public key $pk$, a boolean circuit $C$, and a tuple of ciphertexts $\vec{c}=\langle c_{1},...,c_{t}\rangle$ (corresponding to the $t$ input bits of $C$), and outputs a new evaluated ciphertext $c_{out}$.
+\end{frame}
+
+\begin{frame}{Correctness and Homomorphism}
+    \begin{definition}[Correct Homomorphic Decryption]
+    The scheme $\mathcal{E}$ is correct for a given $t$-input circuit $C$ if, for any key-pair $(sk,pk)\leftarrow \text{KeyGen}(\lambda)$, any plaintexts $m_{1},...,m_{t}\in\{0,1\}$, and any ciphertexts $c_{i}\leftarrow \text{Encrypt}(pk,m_{i})$, the following holds with overwhelming probability:
+    $$\text{Decrypt}(sk,\text{Evaluate}(pk,C,\vec{c}))=C(m_{1},...,m_{t})$$
+    \end{definition}
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Fully Homomorphic Encryption]
+    The scheme $\mathcal{E}$ is homomorphic for a class $\mathcal{C}$ of circuits if it is correct for all circuits $C\in\mathcal{C}$. The scheme $\mathcal{E}$ is \textbf{fully homomorphic} if it is correct for \textit{all} boolean circuits (i.e., circuits of arbitrary depth and size).
+    \end{definition}
+\end{frame}
+
+\begin{frame}{The "Trivial" Solution and The Compactness Rule}
+    \textbf{Mathematical Loophole:} Can we satisfy FHE right now? 
+    \pause
+    
+    \textit{Yes.} An untrusted server could just take the circuit $C$, concatenate it to the raw input ciphertexts, and send it back. The user decrypts the inputs, reads $C$, and computes it locally.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Fix: Compactness.} To prevent the user from doing the computational work, the server must compress the answer.
+    \pause
+
+    \begin{definition}[Compactness]
+    A homomorphic scheme $\mathcal{E}$ is compact if there exists a fixed polynomial bound $b(\lambda)$ such that the size of the ciphertext output by $\text{Evaluate}(pk, C, \vec{c})$ is strictly bounded by $b(\lambda)$ bits, \textbf{independently of the size or depth of $C$}.
+    \end{definition}
+\end{frame}
+
+\section{The Bootstrapping Blueprint}
+
+\begin{frame}{The Crisis of Noise}
+    \begin{intuition}[The Noise Bottleneck]
+    In all known FHE schemes, ciphertexts contain "noise" to ensure security. 
+    \begin{itemize}
+        \item Homomorphic addition adds the noise.
+        \item Homomorphic multiplication \textbf{multiplies} the noise.
+    \end{itemize}
+    Because multiplication squares the noise, evaluating a deep circuit causes the noise to explode past the decryption boundary, permanently destroying the plaintext.
+    \end{intuition}
+    \pause
+    
+    \vspace{0.3cm}
+    This limits us to a \textit{Somewhat} Homomorphic Encryption (SHE) scheme. How do we compute infinitely if noise acts as a strict depth limit?
+\end{frame}
+
+\begin{frame}{Defining Bootstrappability}
+    The answer is Gentry's Bootstrapping Blueprint. First, we define a specific class of circuits.
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Augmented Decryption Circuits]
+    Let $\mathcal{E}$ be an encryption scheme where decryption is implemented by a boolean circuit. The set of augmented decryption circuits, $D_{\mathcal{E}}$, consists of two circuits: 
+    \begin{enumerate}
+        \item Decrypt two ciphertexts and ADD the results.
+        \item Decrypt two ciphertexts and MULTIPLY the results.
+    \end{enumerate}
+    \end{definition}
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Bootstrappable Encryption]
+    Let $\mathcal{C}_{\mathcal{E}}$ be the set of permitted circuits a scheme can evaluate before noise exceeds the bounds. A scheme is \textbf{bootstrappable} if it can evaluate its own augmented decryption circuits:
+    $$D_{\mathcal{E}} \subseteq \mathcal{C}_{\mathcal{E}}$$
+    \end{definition}
+\end{frame}
+
+\begin{frame}{Gentry's Bootstrapping Theorem}
+    \begin{theorem}[Gentry's Transformation]
+    There is an efficient transformation that, given a description of a bootstrappable scheme $\mathcal{E}$, outputs a description of a \textbf{Fully Homomorphic} encryption scheme capable of evaluating circuits of any depth.
+    \end{theorem}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}[How Bootstrapping "Refreshes" Ciphertexts]
+    \begin{enumerate}
+        \item Take a ciphertext $c$ whose noise is dangerously high.
+        \item Encrypt $c$ \textit{again} under a new public key.
+        \item Provide the server with an \textit{encrypted} secret key.
+        \item The server homomorphically evaluates the decryption algorithm on the inner ciphertext.
+    \end{enumerate}
+    \pause
+    \textbf{Result:} Because the decryption circuit is evaluated homomorphically, the output is a fresh ciphertext encrypting the exact same message, but with a fixed, smaller noise level determined solely by the depth of the decryption circuit itself!
+    \end{intuition}
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+        
+        \bibitem{Gentry09}
+        Craig Gentry.
+        \textit{Fully Homomorphic Encryption Using Ideal Lattices}.
+        STOC, 2009.
+        
+        \bibitem{GentryThesis}
+        Craig Gentry.
+        \textit{A Fully Homomorphic Encryption Scheme}.
+        PhD thesis, Stanford University, 2009.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

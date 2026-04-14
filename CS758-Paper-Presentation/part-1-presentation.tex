@@ -1,0 +1,185 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\title[The FHE Dream]{Part 1: The FHE Dream and the Integer Approach}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Nirav Bhattad}
+\date{March 27, 2026}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Part 1}
+    \tableofcontents
+\end{frame}
+
+\section{Motivation: The Cloud Computing Conundrum}
+\begin{frame}{The Cloud Computing Conundrum}
+    \textbf{The Status Quo:}
+    \begin{itemize}
+        \item We have robust solutions for protecting data in transit (e.g., TLS/SSL).
+        \item We have robust solutions for protecting data at rest (e.g., AES).
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Fundamental Vulnerability:}
+    \begin{itemize}
+        \item Traditionally, to perform any meaningful computation on encrypted data, it must first be decrypted.
+        \item Outsourcing heavy computations to an untrusted cloud server requires handing over your secret key or your raw, unencrypted data.
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{The FHE Goal:}
+    Allow an untrusted party to take encrypted inputs, perform arbitrary unbounded computations on them, and return an encrypted result. When decrypted, this result matches exactly what the data owner would have obtained by computing on the plaintext locally.
+\end{frame}
+
+\section{The Quest for the Simplest Secure Scheme}
+\begin{frame}{The Caesar Cipher Analogy}
+    \textit{"What is the simplest encryption scheme for which one can hope to achieve security?"}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Caesar Cipher:}
+    \begin{itemize}
+        \item It is incredibly simple, and ironically, "somewhat homomorphic".
+        \item If you shift 'A' by 3 and 'B' by 3, you can add those shifts together. 
+        \item \textbf{Flaw:} It is entirely insecure.
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Modern Public-Key Crypto (RSA / ElGamal):}
+    \begin{itemize}
+        \item Highly secure, but relies on computationally complex modular exponentiation.
+        \item \textbf{Flaw:} They only support one type of operation (multiplication).
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Intuition:} To compute any arbitrary boolean circuit (and thus any function), we need an algebraically complete set of gates. We strictly need both \textbf{addition} and \textbf{multiplication}.
+\end{frame}
+
+\section{Formalizing the FHE Dream}
+\begin{frame}{Formalizing Homomorphic Encryption}
+    We must rigorously define what a homomorphic scheme entails mathematically. A homomorphic public key encryption scheme, denoted $\mathcal{E}$, consists of four probabilistic polynomial-time (PPT) algorithms:
+    
+    \pause
+    $$\mathcal{E} = (\text{KeyGen}, \text{Encrypt}, \text{Decrypt}, \text{Evaluate})$$
+    
+    \vspace{0.3cm}
+    The first three algorithms operate as standard public-key infrastructure. The "magic" lies entirely in the $\text{Evaluate}$ algorithm.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Evaluate Algorithm:}
+    Takes as input a public key $pk$, a boolean circuit $C$, and a tuple of ciphertexts $\vec{c}=\langle c_{1},...,c_{t}\rangle$ (which correspond to the $t$ input bits of $C$), and outputs a new ciphertext $c_{out}$.
+\end{frame}
+
+\begin{frame}{Definitions of Correctness and FHE}
+    \begin{definition}[2.1: Correct Homomorphic Decryption]
+    The scheme $\mathcal{E}$ is correct for a given $t$-input circuit $C$ if, for any key-pair $(sk,pk)\leftarrow \text{KeyGen}(\lambda)$, any plaintexts $m_{1},...,m_{t}\in\{0,1\}$, and any ciphertexts $c_{i}\leftarrow \text{Encrypt}(pk,m_{i})$, the following holds with overwhelming probability:
+    $$\text{Decrypt}(sk,\text{Evaluate}(pk,C,\vec{c}))=C(m_{1},...,m_{t})$$
+    \end{definition}
+    \pause
+
+    \begin{definition}[2.2: Fully Homomorphic Encryption]
+    The scheme $\mathcal{E}$ is homomorphic for a class $\mathcal{C}$ of circuits if it is correct for all circuits $C\in\mathcal{C}$. The scheme $\mathcal{E}$ is \textbf{fully homomorphic} if it is correct for \textit{all} boolean circuits (i.e., circuits of arbitrary depth and size).
+    \end{definition}
+\end{frame}
+
+\section{The Trivial Solution \& Compactness}
+\begin{frame}{Addressing the "Trivial Solution"}
+    Can we trivially satisfy the definition of FHE right now? Yes, but it results in an inherently useless system.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Proof of Failure by Construction:}
+    \begin{itemize}
+        \item \textbf{Evaluate Step:} Take the boolean circuit $C$ and simply concatenate it to the input ciphertexts $c_{1},...,c_{t}$. Zero actual computation occurs on the server.
+        \item \textbf{Decrypt Step:} The data owner decrypts the raw inputs, reads the attached circuit $C$, and runs the computation locally.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Flaw:} This entirely defeats the purpose of outsourcing computation! The untrusted server does nothing, and the data owner is forced to do all the heavy computational work. 
+    
+    \vspace{0.3cm}
+    To prevent this mathematical loophole, FHE requires a strict constraint: \textbf{Compactness}.
+\end{frame}
+
+\begin{frame}{The Compactness Constraint}
+    \begin{definition}[2.3: Compactness]
+    A homomorphic scheme $\mathcal{E}$ is compact if there exists a fixed polynomial bound $b(\lambda)$ such that for any generated key-pair, any circuit $C$, and any sequence of ciphertexts $\vec{c}$, the size of the ciphertext output by $\text{Evaluate}(pk, C, \vec{c})$ is strictly bounded by $b(\lambda)$ bits, independently of the size or depth of $C$.
+    \end{definition}
+    \pause
+    
+    \vspace{0.5cm}
+    \textbf{Intuition:} 
+    The crucial element here is that the size of the output ciphertext $c_{out}$ must be bounded \textit{independently} of the size or depth of the circuit $C$. You cannot just endlessly append data; the ciphertext must remain a fixed, compact size regardless of how massive the outsourced computation is.
+\end{frame}
+
+\section{The Paradigm Shift: From Lattices to Integers}
+\begin{frame}{The Paradigm Shift}
+    \textbf{The Breakthrough (2009):}
+    For 30 years, FHE was just a theoretical dream. Craig Gentry proved it was possible using complex algebraic geometry—specifically, ideal lattices over polynomial rings. Understanding it required heavy machinery from algebraic number theory.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Integer Approach (2010):}
+    A year later, van Dijk, Gentry, Halevi, and Vaikuntanathan (DGHV) asked: \textit{Did Gentry need all that heavy machinery?} The answer was no.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Conceptual Simplicity:}
+    The DGHV scheme achieves FHE by constructing a "somewhat homomorphic" encryption scheme that merely uses elementary addition and multiplication over the integers. They proved Gentry's blueprint can be instantiated without complex algebraic structures.
+\end{frame}
+
+\begin{frame}{Intuition: The Approximate-GCD Problem}
+    If we are not using complex lattices, what is the security of this integer scheme based on?
+    \pause
+    
+    \vspace{0.3cm}
+    It relies on a fundamental, highly intuitive number-theoretic puzzle: the \textbf{Approximate-GCD problem}.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{The Trivial Case:} If you are given a set of integers that are \textit{exact} multiples of a secret prime $p$, finding $p$ is trivial using the standard Euclidean algorithm.
+        \pause
+        \item \textbf{The Cryptographic Twist:} What if we add just a tiny bit of random noise to each multiple?
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Conclusion:} 
+    By simply adding noise, the problem of finding the common divisor $p$ becomes exponentially hard. This elegant and simple concept serves as the absolute bedrock for the entire DGHV Fully Homomorphic Encryption scheme.
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9} % 9 means that the widest label is 9, adjust as needed
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+        
+        \bibitem{Gentry09}
+        Craig Gentry.
+        \textit{Fully Homomorphic Encryption Using Ideal Lattices}.
+        STOC, 2009.
+        
+        \bibitem{RAD78}
+        Ronald L. Rivest, Len Adleman, and Michael L. Dertouzos.
+        \textit{On Data Banks and Privacy Homomorphisms}.
+        Foundations of Secure Computation, 1978.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

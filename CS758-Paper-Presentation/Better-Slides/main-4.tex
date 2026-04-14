@@ -1,0 +1,248 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+% Define custom theorem environments
+\newtheorem{intuition}{Intuition}
+\newtheorem{motivation}{Motivation}
+
+\title[Phase 4: Security \& Attacks]{Phase 4: Security Reduction and Known Attacks}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Paper Presentation}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Phase 4}
+    \tableofcontents
+\end{frame}
+
+\section{The Approximate-GCD Problem}
+
+\begin{frame}{The Need for Provable Security}
+    \begin{motivation}
+    We have established a working mathematical engine, but in modern cryptography, we do not simply \textit{guess} that a scheme is secure. We must rigorously prove that breaking the semantic security of our encryption is mathematically equivalent to solving a known, well-studied hard problem.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    For RSA, that problem is integer factorization. For Gentry's 2009 FHE, it is finding short vectors in ideal lattices.
+    \pause
+    
+    \vspace{0.3cm}
+    For our integer-based scheme, the foundation is the \textbf{Approximate-GCD Problem}.
+\end{frame}
+
+\begin{frame}{Defining Approximate-GCD}
+    Recall our noise distribution $\mathcal{D}_{\gamma,\rho}(p)$, which outputs integers of the form $x = pq + r$, where $x$ is roughly $\gamma$ bits long, and the noise $r$ is bounded by $2^\rho$.
+    \pause
+
+    \vspace{0.3cm}
+    \begin{definition}[Approximate Integer Greatest Common Divisor]
+    The $(\rho, \eta, \gamma)$-approximate-gcd problem is: given polynomially many samples $x_0, x_1, \dots, x_\tau$ drawn from $\mathcal{D}_{\gamma,\rho}(p)$ for a randomly chosen $\eta$-bit odd integer $p$, output the hidden integer $p$.
+    \end{definition}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}
+    If the noise $r=0$, the problem is trivial. You are given exact multiples of $p$, and a single run of the 2,000-year-old Euclidean algorithm computes $\gcd(x_1, x_2) = p$ instantly. The addition of the noise term $r$ is the sole cryptographic barrier.
+    \end{intuition}
+\end{frame}
+
+% \section{The Security Reduction (High Level)}
+
+% \begin{frame}{The Search-to-Decision Reduction}
+%     The authors provide a formal reduction proving that if you can break the scheme, you can solve Approximate-GCD.
+%     \pause
+    
+%     \vspace{0.2cm}
+%     \textbf{The Blueprint of the Reduction:}
+%     \begin{enumerate}
+%         \item \textbf{The Oracle:} Suppose an attacker $\mathcal{A}$ has a non-negligible advantage in predicting the plaintext bit of a ciphertext.
+%         \item \textbf{Extracting the Parity:} The authors prove that $\mathcal{A}$ can be mathematically manipulated into acting as a reliable "Oracle" that outputs the Least Significant Bit (LSB) of the quotient $q_p(z)$ for any noisy integer $z$. (The Leftover Hash Lemma ensures the simulated ciphertexts fed to $\mathcal{A}$ are statistically indistinguishable from real ones).
+%         \pause
+%         \item \textbf{Binary GCD:} We plug this Oracle into a modified Binary-GCD algorithm. By iteratively asking the Oracle for parity bits, we can systematically peel away the noise terms from our samples without knowing $p$.
+%         \item \textbf{Extraction:} After $\mathcal{O}(\gamma)$ iterations, the noise is stripped, and the exact secret key $p$ is revealed.
+%     \end{enumerate}
+% \end{frame}
+
+\section{The Security Reduction (Outline)}
+
+\begin{frame}{Theorem 4.2: The Search-to-Decision Reduction}
+    \begin{motivation}
+    We must mathematically prove that breaking our scheme is equivalent to solving the Approximate-GCD problem. We do this via a "Search-to-Decision" reduction.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{theorem}[4.2]
+    Any attack $\mathcal{A}$ with advantage $\epsilon$ on the semantic security of the encryption scheme can be converted into an algorithm $\mathcal{B}$ for solving the $(\rho, \eta, \gamma)$-approximate-gcd problem with success probability at least $\epsilon/2$.
+    \end{theorem}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Setup:} 
+    Algorithm $\mathcal{B}$ is given random noisy multiples of a hidden integer $p$. Its goal is to find $p$. To do this, $\mathcal{B}$ uses the attacker $\mathcal{A}$ as a tool, feeding $\mathcal{A}$ simulated public keys and ciphertexts to extract information about $p$.
+\end{frame}
+
+\begin{frame}{The Mechanism: Oracle and Binary GCD}
+    How does $\mathcal{B}$ use the attacker $\mathcal{A}$ to find the secret key $p$?
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Step 1: The Learn-LSB Oracle}
+    \begin{itemize}
+        \item $\mathcal{B}$ constructs randomized, simulated ciphertexts from a noisy integer $z$.
+        \item By observing whether $\mathcal{A}$ correctly guesses the encrypted bits, $\mathcal{B}$ can deduce the \textbf{parity of the quotient} $q_p(z)$, without ever knowing $p$!
+    \end{itemize}
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{Step 2: The Binary GCD Extraction}
+    \begin{itemize}
+        \item $\mathcal{B}$ takes two noisy multiples of $p$ and runs a standard Binary-GCD algorithm on them.
+        \item Whenever the algorithm needs to know if a value is even or odd, $\mathcal{B}$ queries the $\text{Learn-LSB}$ Oracle.
+        \item \textbf{Result:} Iterating this process strips away the noise terms completely, reducing the values down to the exact secret key $p$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Guaranteeing Success: The Distribution Match}
+    For this reduction to hold, we must guarantee that attacker $\mathcal{A}$ cannot tell that it is being manipulated by $\mathcal{B}$. The simulated ciphertexts must look perfectly real.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Why $\mathcal{A}$ is successfully fooled (Section 4.1.1):}
+    \begin{enumerate}
+        \item \textbf{Quotient Uniformity:} By applying the \textbf{Leftover Hash Lemma}, the sum of the random subsets used to build the simulated ciphertext makes the underlying quotient statistically uniform.
+        \pause
+        \item \textbf{Noise Drowning:} $\mathcal{B}$ injects a massive random noise term (drawn from $2^{\rho'}$) into the simulation. This completely "drowns out" and statistically hides any underlying discrepancies in the base noise.
+    \end{enumerate}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}
+    Because the simulated data is statistically indistinguishable from real FHE traffic, $\mathcal{A}$'s advantage holds. A rigorous counting argument proves that $\mathcal{B}$ will successfully recover the Approximate-GCD secret key $p$ with probability $\ge \epsilon/2$.
+    \end{intuition}
+\end{frame}
+
+\section{Why Standard Attacks Fail}
+
+\begin{frame}{Algebraic Failures: Continued Fractions}
+    If we cannot break the semantic security, can we attack the Approximate-GCD directly?
+    
+    \vspace{0.2cm}
+    \textbf{Attempt 1: Continued Fractions}
+    Since $x_1 \approx q_1 p$ and $x_2 \approx q_2 p$, we know the public ratio $x_1 / x_2$ is very close to the unknown rational $q_1 / q_2$. Can we find $q_1/q_2$ in the continued fraction expansion of $x_1/x_2$?
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{The Mathematical Failure:}
+    Let's analyze the distance between the public ratio and the target quotient ratio:
+    $$ \left| \frac{x_1}{x_2} - \frac{q_1}{q_2} \right| = \left| \frac{q_2(q_1 p + r_1) - q_1(q_2 p + r_2)}{q_2(q_2 p + r_2)} \right| \approx \left| \frac{q_2 r_1 - q_1 r_2}{p \cdot q_2^2} \right| $$
+    \pause
+    
+    \begin{block}{The Cross-Noise Barrier}
+    The distance is dominated by the cross-multiplied noise term $(q_2 r_1 - q_1 r_2) / p$. Because this distance is significantly larger than $1/q_2^2$, Dirichlet's approximation theorem does not apply. The target fraction is hopelessly obscured by the noise.
+    \end{block}
+\end{frame}
+
+\section{The Geometric Threat: Lattice Attacks}
+
+\begin{frame}{The Simultaneous Diophantine Approximation (SDA)}
+    Because simple algebraic attacks fail, attackers must turn to the geometry of numbers—specifically lattice reduction algorithms like LLL and BKZ.
+    \pause
+    
+    \vspace{0.2cm}
+    Given samples $x_0, x_1, \dots, x_t$, we construct a $(t+1)$-dimensional SDA lattice $L$ spanned by the rows of matrix $M$:
+    $$ M = \begin{pmatrix} 
+    2^\rho & 0 & 0 & \dots & 0 \\ 
+    x_1 & -x_0 & 0 & \dots & 0 \\ 
+    x_2 & 0 & -x_0 & \dots & 0 \\ 
+    \vdots & \vdots & \vdots & \ddots & \vdots \\ 
+    x_t & 0 & 0 & \dots & -x_0 
+    \end{pmatrix} $$
+\end{frame}
+
+\begin{frame}{Finding the Target Vector}
+    The attacker's goal is to find the hidden vector of quotients $\vec{q} = \langle q_0, q_1, \dots, q_t \rangle$. Let's multiply $\vec{q}$ by $M$:
+    
+    $$ \vec{v} = \vec{q} \cdot M = \langle q_0 2^\rho, \ q_0 x_1 - q_1 x_0, \ \dots, \ q_0 x_t - q_t x_0 \rangle $$
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{The Critical Cancellation:} 
+    Look at the components $q_0 x_i - q_i x_0$. Since $x_i = q_i p + r_i$, we can expand:
+    $$ q_0 x_i - q_i x_0 = q_0(q_i p + r_i) - q_i(q_0 p + r_0) $$
+    $$ = q_0 q_i p + q_0 r_i - q_i q_0 p - q_i r_0 $$
+    $$ = \mathbf{q_0 r_i - q_i r_0} $$
+    \pause
+    
+    \begin{block}{The Threat}
+    The secret key $p$ perfectly cancels out! This leaves $\vec{v}$ as a relatively short target vector in the lattice. If an algorithm like LLL can find $\vec{v}$, the attacker recovers the quotients, computes $p \approx x_0 / q_0$, and the scheme is broken.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Defeating the Lattice}
+    Will LLL or BKZ actually find this target vector $\vec{v}$? This is where our parameter selection defends the scheme.
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 1: Attacker uses a small number of samples $t$}
+    \begin{itemize}
+        \item By Minkowski's bound, a low-dimensional lattice contains exponentially many \textit{spurious} vectors that are much shorter than our target $\vec{v}$. 
+        \item The target vector is completely buried in geometric noise.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Scenario 2: Attacker uses a massive number of samples $t$}
+    \begin{itemize}
+        \item The attacker forces $t$ to be huge so $\vec{v}$ is the absolute shortest vector.
+        \item However, known lattice reduction algorithms take time $\approx 2^{t/k}$ to find a $2^k$ approximation.
+        \item Isolating $\vec{v}$ strictly requires time roughly $\mathbf{2^{\gamma / \eta^2}}$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Summary of Secure Parameters}
+    By setting the bit-length of the public key elements ($\gamma$) to be massively large, we force the lattice dimension to be computationally impossible to reduce. 
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{Final Secure Parameters:}
+    \begin{itemize}
+        \item $\rho = \mathcal{O}(\lambda)$: Prevents brute-force guessing of the noise $r$.
+        \item $\eta = \tilde{\mathcal{O}}(\lambda^2)$: Supports the homomorphic noise budget (depth for bootstrapping).
+        \item $\gamma = \tilde{\mathcal{O}}(\lambda^5)$: Specifically ensures that $\gamma = \omega(\eta^2 \log \lambda)$. This makes the time $2^{\gamma / \eta^2}$ super-polynomial, thwarting all SDA and lattice reduction algorithms.
+    \end{itemize}
+    \pause
+    
+    \vspace{0.3cm}
+    \textit{Conclusion:} While this results in massive public keys, it mathematically guarantees rigorous security based solely on the hardness of the Approximate-GCD over the integers.
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+        
+        \bibitem{Lagarias85}
+        J. C. Lagarias.
+        \textit{The computational complexity of simultaneous diophantine approximation problems}. 
+        SIAM J. Comput., 1985.
+        
+        \bibitem{Howgrave01}
+        N. Howgrave-Graham.
+        \textit{Approximate integer common divisors}.
+        CaLC, 2001.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}

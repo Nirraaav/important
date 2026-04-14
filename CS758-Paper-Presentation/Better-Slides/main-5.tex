@@ -1,0 +1,191 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+% Define custom theorem environments
+\newtheorem{intuition}{Intuition}
+\newtheorem{motivation}{Motivation}
+
+\title[Phase 5: The Climax]{Phase 5: The Climax -- Squashing and Achieving FHE}
+\subtitle{Fully Homomorphic Encryption over the Integers}
+\author{Paper Presentation}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Outline: Phase 5}
+    \tableofcontents
+\end{frame}
+
+\section{The Depth Problem}
+
+\begin{frame}{The Crisis of Bootstrapping}
+    \begin{motivation}
+    We established in Phase 1 that to achieve Fully Homomorphic Encryption, our scheme must be \textbf{bootstrappable}. It must be able to homomorphically evaluate its own decryption circuit before the noise exceeds the $p/2$ boundary.
+    \end{motivation}
+    \pause
+    
+    \vspace{0.3cm}
+    Let us look at the mathematics of our decryption equation:
+    $$m' = (c \pmod p) \pmod 2$$
+    \pause
+    
+    To evaluate this homomorphically as a boolean circuit, we must compute it over the integers:
+    $$c \pmod p = c - p \lfloor c/p \rceil$$
+\end{frame}
+
+\begin{frame}{The Wall of Integer Division}
+    \textbf{The Roadblock:}
+    To evaluate $c - p \lfloor c/p \rceil$, the circuit must compute $\lfloor c/p \rceil$. This requires \textbf{integer division}. 
+    \pause
+    
+    \vspace{0.3cm}
+    When translated into a boolean polynomial circuit, division has a massive multiplicative depth. 
+    \pause
+    
+    \vspace{0.3cm}
+    Recall our permitted polynomial degree bound $d$ from Phase 2:
+    $$d \le \frac{\eta - 4 - \log||\hat{f}||_1}{\rho' + 2}$$
+    \pause
+    
+    \textbf{The Reality:} The standard division circuit's degree far exceeds this permitted noise budget. The decryption circuit is simply too deep. We must \textbf{"squash"} it.
+\end{frame}
+
+\section{Squashing the Decryption Circuit}
+
+\begin{frame}{Squashing: Shifting the Burden}
+    To make the scheme bootstrappable, we must reduce the multiplicative depth of the decryption circuit.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}[The Squashing Strategy]
+    Division by $p$ is mathematically expensive. Multiplication is relatively cheap. We will shift the heavy computational lifting from the $\text{Decrypt}$ algorithm (which is strictly constrained by the noise budget) to the $\text{Evaluate}$ algorithm (which can be done in the clear by the server \textit{before} the final homomorphic step).
+    \end{intuition}
+    \pause
+    
+    \vspace{0.3cm}
+    \textbf{New Parameters:}
+    \begin{itemize}
+        \item $\kappa$: Precision of rational numbers.
+        \item $\Theta$: Size of a massive public set of rational numbers.
+        \item $\theta$: The Hamming weight of a sparse secret subset.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Modifying Key Generation: The Hint}
+    During KeyGen, alongside $p$ and $pk^*$, we generate a "hint" about the value of $1/p$.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{1. The New Secret Key ($\vec{s}$):}
+    Choose a random $\Theta$-bit vector $\vec{s} = \langle s_1, \dots, s_\Theta \rangle$ with a very low Hamming weight $\theta$. 
+    Let $S = \{i : s_i = 1\}$. This sparse vector $\vec{s}$ becomes the new secret key.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{2. The Public Rational Numbers ($\vec{y}$):}
+    Generate a set $\vec{y} = \{y_1, \dots, y_\Theta\}$ of rational numbers in $[0, 2)$ with $\kappa$ bits of precision, such that the subset $S$ sums to approximately $1/p$:
+    $$\sum_{i \in S} y_i \approx \frac{1}{p} \pmod 2$$
+    Specifically, $\left[ \sum_{i \in S} y_i \right]_2 = \frac{1}{p} - \Delta_p$, where $|\Delta_p| < 2^{-\kappa}$.
+\end{frame}
+
+\begin{frame}{Modifying Evaluate and Decrypt}
+    When the server finishes homomorphically evaluating a circuit, it holds a noisy ciphertext $c^*$. \textbf{Before returning it}, the server does post-processing in the clear.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{Server Post-Processing:}
+    For $i \in \{1, \dots, \Theta\}$, the server computes:
+    $$z_i = [c^* \cdot y_i]_2$$
+    keeping only $n = \lceil \log \theta \rceil + 3$ bits of precision. The server outputs $c^*$ and $\vec{z} = \langle z_1, \dots, z_\Theta \rangle$.
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{Deriving the Squashed Decryption:}
+    We need to compute $c^*/p \pmod 2$.
+    $$\frac{c^*}{p} \approx c^* \sum_{i \in S} y_i \pmod 2 = \sum_{i=1}^\Theta s_i (c^* y_i) \pmod 2 \approx \sum_{i=1}^\Theta s_i z_i \pmod 2$$
+    \pause
+    
+    \textbf{The New Decrypt Algorithm:}
+    $$m' = \left[ c^* - \left\lfloor \sum_{i=1}^\Theta s_i z_i \right\rceil \right]_2$$
+\end{frame}
+
+\section{The Shallow Circuit \& Bootstrapping Achieved}
+
+\begin{frame}{The Shallow Decryption Circuit}
+    Look at our new decryption equation: $m' = \left[ c^* - \lfloor \sum_{i=1}^\Theta s_i z_i \rceil \right]_2$.
+    \pause
+    
+    \vspace{0.2cm}
+    \textbf{Why is this a mathematical triumph?}
+    \begin{itemize}
+        \item The server has already provided the rational numbers $z_i$.
+        \item The secret key bits $s_i$ are strictly $0$ or $1$.
+        \item Our only job is to sum up numbers. Because $\vec{s}$ is sparse, only $\theta$ of them are non-zero!
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \begin{lemma}[4.1: Elementary Symmetric Polynomials]
+    We use the classic "three-for-two" trick to reduce the sum. The $i$-th bit of the Hamming weight of a binary vector $\vec{\sigma}$ can be expressed as a polynomial of degree exactly $2^i$ using the $2^i$-th elementary symmetric polynomial $e_{2^i}(\vec{\sigma})$.
+    \end{lemma}
+\end{frame}
+
+\begin{frame}{Bounding the Degree}
+    Because we only need $\lceil \log \theta \rceil + 3$ bits of precision after the binary point, the maximum degree required to compute the binary sum and rounding is strictly bounded by:
+    $$\text{Degree} \le 64\theta \log^2\theta$$
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{intuition}
+    By forcing the evaluator to pre-compute the partial products $z_i$ using the hint $y_i$, we squashed the massively deep integer division circuit down to a simple, sparse subset sum. 
+    \end{intuition}
+\end{frame}
+
+\begin{frame}{The Grand Finale: Bootstrapping Achieved}
+    By setting $\theta = \lambda$, the degree of our squashed decryption polynomial becomes $\mathcal{O}(\lambda \log^2 \lambda)$.
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{theorem}[6.2: Bootstrapping Achieved]
+    If we set our secret key length $\eta = \rho \cdot \Theta(\lambda \log^2 \lambda)$, the base SHE scheme's noise budget can comfortably handle polynomials of degree $\mathcal{O}(\lambda \log^2 \lambda)$. 
+    \pause
+    
+    Because the degree of the squashed decryption circuit is strictly less than the maximum degree of the permitted polynomials, we have:
+    $$\mathcal{D}_{\mathcal{E}} \subset \mathcal{C}_{\mathcal{E}}$$
+    Therefore, the scheme is bootstrappable.
+    \end{theorem}
+    \pause
+    
+    \vspace{0.3cm}
+    \begin{center}
+        \textbf{We have achieved Fully Homomorphic Encryption using nothing but elementary modular arithmetic over the integers.}
+    \end{center}
+\end{frame}
+
+\section{References}
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{DGHV10}
+        Marten van Dijk, Craig Gentry, Shai Halevi, and Vinod Vaikuntanathan.
+        \textit{Fully Homomorphic Encryption over the Integers}. 
+        Eurocrypt, 2010.
+        
+        \bibitem{Gentry09}
+        Craig Gentry.
+        \textit{A Fully Homomorphic Encryption Scheme}. 
+        PhD Thesis, Stanford University, 2009.
+        
+        \bibitem{Boyar00}
+        J. Boyar, R. Peralta, and D. Pochuev.
+        \textit{On the multiplicative complexity of boolean functions over the basis ($\land$, $\oplus$, 1)}.
+        Theor. Comput. Sci., 2000.
+    \end{thebibliography}
+\end{frame}
+
+\end{document}
