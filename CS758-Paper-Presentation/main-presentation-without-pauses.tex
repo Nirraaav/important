@@ -1173,4 +1173,67 @@
     \textbf{Note:} SSSP is a separate assumption, not implied by AGCD.
 \end{frame}
 
+\section{Evolution and Open Problems}
+
+\begin{frame}{The Evolution of Integer FHE}
+    The original 2010 DGHV scheme was a conceptual breakthrough, but suffered from massive public key sizes ($\tilde{\mathcal{O}}(\lambda^{10})$) and severe performance bottlenecks. Subsequent research rapidly optimized the integer paradigm:
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{1. Key Compression \& Modulus Switching (2011--2012):}
+    \begin{itemize}
+        \item Evaluated quadratic forms and adopted ``modulus switching" (adapted from the BGV scheme) to slash the public key size down to $\tilde{\mathcal{O}}(\lambda^5)$.
+        \item \textit{Crucial impact:} Completely eliminated the need for the complex ``squashing" step prior to bootstrapping.
+    \end{itemize}
+    \pause
+
+    \textbf{2. Batching \& SIMD Operations (2013):}
+    \begin{itemize}
+        \item Utilized the Chinese Remainder Theorem (CRT) with multiple secret primes to encrypt vectors of plaintext bits into a single ciphertext, drastically improving amortized efficiency.
+    \end{itemize}
+    \pause
+
+    \textbf{3. Scale-Invariant Noise \& Message Spaces (2014--2015):}
+    \begin{itemize}
+        \item Achieved linear (rather than exponential) noise growth, dropping the modulus switching requirement entirely.
+        \item Expanded the message space from binary ($\mathbb{Z}_2$) to any prime ($\mathbb{Z}_p$), reducing the multiplicative degree of the decryption circuit.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Open Problems and the Future of FHE}
+    While the integer-based approach has been heavily optimized, several critical challenges remain for the Fully Homomorphic Encryption community at large:
+    \pause
+
+    \vspace{0.3cm}
+    \textbf{1. The Bootstrapping Bottleneck:}
+    \begin{itemize}
+        \item Even with scale-invariant noise and SIMD batching, homomorphically evaluating the decryption circuit remains a massive computational tax. Minimizing or entirely bypassing the need for bootstrapping remains the holy grail of FHE.
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{2. Ciphertext Expansion Ratio:}
+    \begin{itemize}
+        \item The ratio of the ciphertext size to the actual underlying plaintext data is still highly impractical for low-bandwidth environments or massive databases.
+    \end{itemize}
+    \pause
+
+    \vspace{0.2cm}
+    \textbf{3. RLWE vs. Approximate-GCD:}
+    \begin{itemize}
+        \item Modern practical FHE libraries (like HElib, SEAL, and TFHE) have largely standardized on Ring Learning With Errors (RLWE) over polynomial rings. 
+        \item \textit{Open Question:} Can the conceptual simplicity of the integer approach (Approximate-GCD) ever be engineered to competitively match the hardware-accelerated speeds of RLWE schemes?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+    \begin{center}
+        \Large \textbf{Thank You!}
+        
+        \vspace{0.5cm}
+        \normalsize
+        Are there any questions?
+    \end{center}
+\end{frame}
+
 \end{document}
