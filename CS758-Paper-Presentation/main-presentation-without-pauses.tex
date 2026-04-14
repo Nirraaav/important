@@ -1020,34 +1020,34 @@
     That is, $E$ is bootstrappable, and by [Gentry09, Theorem 4], $E$ is fully
     homomorphic.
     \end{theorem}
-    % \pause
+    \pause
 
-    % \vspace{0.3cm}
-    % \textbf{Proof strategy.}
-    % Express the decryption equation
-    % $m' = (c^* - \lfloor\sum_i s_i z_i\rceil) \bmod 2$
-    % as a permitted polynomial in the secret key bits $s_i$, and show its
-    % degree is within the bound of Equation~(1).
+    \vspace{0.3cm}
+    \textbf{Proof strategy.}
+    Express the decryption equation
+    $m' = (c^* - \lfloor\sum_i s_i z_i\rceil) \bmod 2$
+    as a permitted polynomial in the secret key bits $s_i$, and show its
+    degree is within the bound of the Lemma of Permitted Degree Bound.
 
-    % \vspace{0.3cm}
-    % The computation decomposes into three steps, each contributing a factor
-    % to the total degree:
+    \vspace{0.3cm}
+    The computation decomposes into three steps, each contributing a factor
+    to the total degree:
 
-    % \vspace{0.2cm}
-    % \begin{center}
-    % \renewcommand{\arraystretch}{1.3}
-    % \begin{tabular}{clr}
-    %     \hline
-    %     \textbf{Step} & \textbf{Computation} & \textbf{Degree in $s_i$} \\
-    %     \hline
-    %     1 & Selection:\; $a_i = s_i \cdot z_i$ \quad($z_i$ is a plain constant) & $2$ \\
-    %     2 & Column Hamming weights via elem.\ sym.\ polynomials & $\leq\theta$ \\
-    %     3 & Three-for-two on $n{+}1$ numbers; final rounding & $\leq 32\log^2\!\theta$ \\
-    %     \hline
-    %     & Total (product of steps) & $64\theta\log^2\!\theta$ \\
-    %     \hline
-    % \end{tabular}
-    % \end{center}
+    \vspace{0.2cm}
+    \begin{center}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{clr}
+        \hline
+        \textbf{Step} & \textbf{Computation} & \textbf{Degree in $s_i$} \\
+        \hline
+        1 & Selection:\; $a_i = s_i \cdot z_i$ \quad($z_i$ is a plain constant) & $2$ \\
+        2 & Column Hamming weights via elem.\ sym.\ polynomials & $\leq\theta$ \\
+        3 & Three-for-two on $n{+}1$ numbers; final rounding & $\leq 32\log^2\!\theta$ \\
+        \hline
+        & Total (product of steps) & $\leq 64\theta\log^2\!\theta$ \\
+        \hline
+    \end{tabular}
+    \end{center}
 \end{frame}
 
 % \begin{frame}{Completing the Proof}
